@@ -1,28 +1,154 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
+import { useDeepgramSocket } from './hooks/useDeepgramSocket';
 
 function App() {
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState([]);
   const [audioUrl, setAudioUrl] = useState(null);
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [error, setError] = useState(null);
+  const [appError, setAppError] = useState(null); // Renamed to avoid conflict with hook's error
+  const [isConnectingToSocket, setIsConnectingToSocket] = useState(false); // For UI feedback
+
   const mediaRecorderRef = useRef(null);
-  const socketRef = useRef(null);
   const chunksRef = useRef([]);
   const startTimeRef = useRef(null);
 
+  const handleSocketOpen = useCallback(() => {
+    console.log('App: Deepgram connection opened');
+    // setIsConnectingToSocket(false); // Handled by onConnectionChange in hook
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.start(250); // Send chunks every 250ms
+    }
+  }, []);
+
+  const handleSocketMessage = useCallback((message) => {
+    try {
+      const data = JSON.parse(message.data);
+
+      if (data.type === 'Error') {
+        console.error('App: Deepgram error message:', data);
+        setAppError(`Deepgram error: ${data.reason || 'Unknown error'}`);
+        return;
+      }
+
+      if (data.channel && data.channel.alternatives && data.channel.alternatives[0]) {
+        const receivedTranscript = data.channel.alternatives[0];
+
+        if (receivedTranscript.words && receivedTranscript.words.length > 0) {
+          const speakerSegments = [];
+          let currentSpeaker = null;
+          let currentText = '';
+
+          receivedTranscript.words.forEach(word => {
+            if (currentSpeaker !== word.speaker && word.speaker !== undefined) {
+              if (currentSpeaker !== null && currentText.trim()) {
+                speakerSegments.push({
+                  speaker: currentSpeaker,
+                  text: currentText.trim()
+                });
+              }
+              currentSpeaker = word.speaker;
+              currentText = word.word + ' ';
+            } else {
+              currentText += word.word + ' ';
+            }
+          });
+
+          if (currentText.trim()) {
+            speakerSegments.push({
+              speaker: currentSpeaker !== null ? currentSpeaker : 0,
+              text: currentText.trim()
+            });
+          }
+
+          if (speakerSegments.length > 0) {
+            setTranscript(prev => {
+              const newTranscript = [...prev];
+              speakerSegments.forEach(segment => {
+                const lastSegment = newTranscript.length > 0 ? newTranscript[newTranscript.length - 1] : null;
+                if (lastSegment && lastSegment.speaker === segment.speaker) {
+                  lastSegment.text += ' ' + segment.text;
+                } else {
+                  newTranscript.push(segment);
+                }
+              });
+              return newTranscript;
+            });
+          }
+        } else if (receivedTranscript.transcript && receivedTranscript.transcript.trim()) {
+          setTranscript(prev => {
+            const newText = receivedTranscript.transcript.trim();
+            const lastSegment = prev.length > 0 ? prev[prev.length - 1] : null;
+            if (lastSegment && lastSegment.speaker === 'unknown') {
+              return [
+                ...prev.slice(0, -1),
+                { ...lastSegment, text: lastSegment.text + ' ' + newText }
+              ];
+            } else {
+              return [...prev, { speaker: 'unknown', text: newText }];
+            }
+          });
+        }
+      }
+    } catch (error) {
+      console.error('App: Error processing transcript:', error, message.data);
+      setAppError('Error processing transcript data.');
+    }
+  }, []);
+
+  const handleSocketClose = useCallback((event) => {
+    console.log('App: Deepgram connection closed:', event.code, event.reason);
+    // setIsConnectingToSocket(false); // Handled by onConnectionChange in hook
+    if (isRecording && event.code !== 1000 && event.code !== 1005 /* Normal closure */) {
+      setAppError(`Connection closed unexpectedly: ${event.reason || 'Unknown reason'}`);
+      // stopRecording(); // stopRecording might try to close socket again, let's be careful
+    }
+  }, [isRecording]);
+
+  const handleSocketError = useCallback((error) => {
+    console.error('App: Deepgram WebSocket error:', error);
+    // setIsConnectingToSocket(false); // Handled by onConnectionChange in hook
+    setAppError(error.message || 'Connection error with Deepgram.');
+    // stopRecording(); // stopRecording might try to close socket again
+  }, []);
+
+  const handleSocketConnectionChange = useCallback((isConnecting) => {
+    setIsConnectingToSocket(isConnecting);
+  }, []);
+
+
+  const {
+    connectDeepgram,
+    disconnectDeepgram,
+    sendAudioData,
+    isSocketConnecting, // This is from the hook, reflects socket's own connecting state
+    socketError,      // Error from the hook
+    getSocketState,
+    socketRef // For debug panel
+  } = useDeepgramSocket(
+    handleSocketOpen,
+    handleSocketMessage,
+    handleSocketClose,
+    handleSocketError,
+    handleSocketConnectionChange
+  );
+
+  useEffect(() => {
+    if (socketError) {
+      setAppError(socketError.message);
+    }
+  }, [socketError]);
+
+
   const startRecording = async () => {
     try {
-      // Reset state
-      setError(null);
-      setIsConnecting(true);
+      setAppError(null);
+      // setIsConnectingToSocket(true); // This will be set by the hook via onConnectionChange
       chunksRef.current = [];
       setTranscript([]);
       setAudioUrl(null);
       startTimeRef.current = new Date();
 
-      // Request microphone access
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -31,199 +157,57 @@ function App() {
         }
       });
 
-      // Set up MediaRecorder with higher quality
       const options = { mimeType: 'audio/webm' };
       const mediaRecorder = new MediaRecorder(stream, options);
       mediaRecorderRef.current = mediaRecorder;
 
-      // Connect to Deepgram
-      const deepgramApiKey = import.meta.env.DEEPGRAM_API_KEY;
+      const deepgramApiKey = import.meta.env.VITE_DEEPGRAM_API_KEY; // Ensure VITE_ prefix for Vite
       if (!deepgramApiKey) {
-        throw new Error("Deepgram API key is missing. Please check your .env file.");
+        const err = new Error("Deepgram API key is missing. Please check your .env file (e.g. VITE_DEEPGRAM_API_KEY).");
+        setAppError(err.message);
+        // setIsConnectingToSocket(false);
+        return;
       }
 
-      const socket = new WebSocket('wss://api.deepgram.com/v1/listen?diarize=true&model=nova-3', [
-        'token',
-        deepgramApiKey,
-      ]);
-
-      socketRef.current = socket;
-
-      socket.onopen = () => {
-        console.log('Connection opened');
-        setIsConnecting(false);
-
-        // // Configure Deepgram - fix the schema by adding type field
-        // const deepgramParams = {
-        //   type: "ClusterConfig",
-        //   punctuate: true,
-        //   diarize: true,
-        //   encoding: 'linear16',
-        //   sample_rate: 16000,
-        //   channels: 1,
-        //   language: 'en-US',
-        //   model: "nova-2",
-        //   smart_format: true,
-        //   interim_results: true
-        // };
-
-        // socket.send(JSON.stringify(deepgramParams));
-
-        // Start recording
-        mediaRecorder.start(250); // Send chunks every 250ms
-      };
-
-      socket.onmessage = (message) => {
-        try {
-          const data = JSON.parse(message.data);
-
-          // Check if this is an error message
-          if (data.type === 'Error') {
-            console.error('Deepgram error:', data);
-            return;
-          }
-
-          // Process transcript data
-          if (data.channel && data.channel.alternatives && data.channel.alternatives[0]) {
-            const receivedTranscript = data.channel.alternatives[0];
-
-            // Check for speaker information
-            if (receivedTranscript.words && receivedTranscript.words.length > 0) {
-              // Group words by speaker
-              const speakerSegments = [];
-              let currentSpeaker = null;
-              let currentText = '';
-
-              receivedTranscript.words.forEach(word => {
-                if (currentSpeaker !== word.speaker && word.speaker !== undefined) {
-                  if (currentSpeaker !== null && currentText.trim()) {
-                    speakerSegments.push({
-                      speaker: currentSpeaker,
-                      text: currentText.trim()
-                    });
-                  }
-                  currentSpeaker = word.speaker;
-                  currentText = word.word + ' ';
-                } else {
-                  currentText += word.word + ' ';
-                }
-              });
-
-              // Add the last segment
-              if (currentText.trim()) {
-                speakerSegments.push({
-                  speaker: currentSpeaker !== null ? currentSpeaker : 0,
-                  text: currentText.trim()
-                });
-              }
-
-              // Update transcript with speaker information
-              if (speakerSegments.length > 0) {
-                setTranscript(prev => {
-                  // Create a new array to avoid modifying the previous state directly
-                  const newTranscript = [...prev];
-
-                  // For each new segment, check if we can merge with the last segment
-                  speakerSegments.forEach(segment => {
-                    const lastSegment = newTranscript.length > 0 ? newTranscript[newTranscript.length - 1] : null;
-
-                    // If the last segment has the same speaker, merge the text
-                    if (lastSegment && lastSegment.speaker === segment.speaker) {
-                      lastSegment.text += ' ' + segment.text;
-                    } else {
-                      // Otherwise add as a new segment
-                      newTranscript.push(segment);
-                    }
-                  });
-
-                  return newTranscript;
-                });
-              }
-            }
-            // Fallback if no word-level speaker info
-            else if (receivedTranscript.transcript && receivedTranscript.transcript.trim()) {
-              setTranscript(prev => {
-                const newText = receivedTranscript.transcript.trim();
-                const lastSegment = prev.length > 0 ? prev[prev.length - 1] : null;
-
-                // If the last segment is from an unknown speaker, append to it
-                if (lastSegment && lastSegment.speaker === 'unknown') {
-                  return [
-                    ...prev.slice(0, -1),
-                    { ...lastSegment, text: lastSegment.text + ' ' + newText }
-                  ];
-                } else {
-                  // Otherwise add as a new segment
-                  return [...prev, { speaker: 'unknown', text: newText }];
-                }
-              });
-            }
-          }
-        } catch (error) {
-          console.error('Error processing transcript:', error, message.data);
-        }
-      };
-
-      socket.onclose = (event) => {
-        console.log('Connection closed:', event.code, event.reason);
-        setIsConnecting(false);
-
-        // Only show error if we're not manually closing the connection
-        if (isRecording && event.code !== 1000) {
-          setError(`Connection closed: ${event.reason || 'Unknown reason'}`);
-          stopRecording();
-        }
-      };
-
-      socket.onerror = (error) => {
-        console.error('WebSocket error:', error);
-        setIsConnecting(false);
-        setError('Connection error with Deepgram. Check console for details.');
-        stopRecording();
-      };
+      connectDeepgram(deepgramApiKey); // Hook handles setIsConnectingToSocket via callback
 
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           chunksRef.current.push(event.data);
-
-          // Send to Deepgram if connection is open
-          if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-            // Clone the blob to avoid issues
-            event.data.arrayBuffer().then(buffer => {
-              socketRef.current.send(buffer);
-            });
-          }
+          event.data.arrayBuffer().then(buffer => {
+            sendAudioData(buffer);
+          });
         }
       };
 
       mediaRecorder.onstop = () => {
-        // Create audio blob and URL
         const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
         const url = URL.createObjectURL(audioBlob);
         setAudioUrl(url);
       };
 
+      // mediaRecorder.start() is now called in handleSocketOpen
       setIsRecording(true);
+
     } catch (error) {
       console.error('Error starting recording:', error);
+      setAppError(error.message || 'Failed to start recording.');
+      setIsConnectingToSocket(false); // Explicitly set if startRecording itself fails before socket connection attempt
+      setIsRecording(false);
     }
   };
 
   const stopRecording = () => {
-    // Stop recording and close connections
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
       mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
     }
 
-    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-      socketRef.current.close(1000, "User stopped recording");
-    }
+    disconnectDeepgram(1000, "User stopped recording");
 
     setIsRecording(false);
-    setIsConnecting(false);
+    // setIsConnectingToSocket(false); // Hook's onClose/onError will handle this via onConnectionChange
 
-    // Calculate recording duration
     if (startTimeRef.current) {
       const duration = Math.round((new Date() - startTimeRef.current) / 1000);
       console.log(`Recording stopped after ${duration} seconds`);
@@ -243,43 +227,45 @@ function App() {
   };
 
   useEffect(() => {
-    // Cleanup function
     return () => {
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
         mediaRecorderRef.current.stop();
         mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
       }
-
-      if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-        socketRef.current.close();
-      }
-
-      // Clean up audio URL if it exists
+      disconnectDeepgram(1005, "Component unmounting"); // Use a different code for unmount
       if (audioUrl) {
         URL.revokeObjectURL(audioUrl);
       }
     };
-  }, [audioUrl]);
+  }, [audioUrl, disconnectDeepgram]); // Added disconnectDeepgram to dependencies
 
-  // Function to color-code different speakers
   const getSpeakerColor = (speakerId) => {
     const colors = ['#4285F4', '#EA4335', '#FBBC05', '#34A853', '#8F00FF', '#FF6D01'];
-
     if (speakerId === 'unknown') return '#757575';
-
-    // Ensure we always get a valid index
     const index = typeof speakerId === 'number' ? speakerId % colors.length : 0;
     return colors[index];
   };
+
+  const currentSocketState = getSocketState();
+  const socketStateString = () => {
+    switch (currentSocketState) {
+      case WebSocket.CONNECTING: return 'Connecting';
+      case WebSocket.OPEN: return 'Open';
+      case WebSocket.CLOSING: return 'Closing';
+      case WebSocket.CLOSED: return 'Closed';
+      default: return 'Not Connected';
+    }
+  };
+
 
   return (
     <div className="app-container">
       <h1>Conversation Recorder</h1>
 
-      {error && (
+      {appError && (
         <div className="error-banner">
-          <p>{error}</p>
-          <button onClick={() => setError(null)} className="error-close">×</button>
+          <p>{appError}</p>
+          <button onClick={() => setAppError(null)} className="error-close">×</button>
         </div>
       )}
 
@@ -287,9 +273,9 @@ function App() {
         <button
           onClick={isRecording ? stopRecording : startRecording}
           className={isRecording ? "stop-btn" : "start-btn"}
-          disabled={isConnecting}
+          disabled={isConnectingToSocket || (isRecording && isSocketConnecting)} // Disable if socket is trying to connect
         >
-          {isConnecting ? 'Connecting...' : isRecording ? 'Stop Recording' : 'Start Recording'}
+          {isConnectingToSocket ? 'Connecting...' : isRecording ? 'Stop Recording' : 'Start Recording'}
         </button>
 
         {audioUrl && (
@@ -315,9 +301,7 @@ function App() {
           {transcript.length > 0 ? (
             <div className="transcript-conversation">
               {transcript.map((segment, index) => {
-                // Add timestamp to each segment
                 const timestamp = new Date().toLocaleTimeString();
-
                 return (
                   <div key={index} className="transcript-segment">
                     <div className="segment-header">
@@ -347,11 +331,9 @@ function App() {
 
       <div className="debug-panel">
         <h3>Debug Info</h3>
-        <p>Connection Status: {socketRef.current ?
-          (socketRef.current.readyState === WebSocket.OPEN ? 'Open' :
-            socketRef.current.readyState === WebSocket.CONNECTING ? 'Connecting' :
-              socketRef.current.readyState === WebSocket.CLOSED ? 'Closed' : 'Closing')
-          : 'Not Connected'}</p>
+        <p>Connection Status: {socketStateString()}</p>
+        <p>Socket Hook Connecting: {isSocketConnecting ? 'Yes' : 'No'}</p>
+        <p>App UI Connecting: {isConnectingToSocket ? 'Yes' : 'No'}</p>
         <p>Recording Status: {isRecording ? 'Recording' : 'Stopped'}</p>
         <p>Audio Chunks: {chunksRef.current.length}</p>
       </div>
