@@ -214,3 +214,382 @@ button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* Styles for HomePage and its new elements */
+body {
+  background-color: #f4f7f6;
+  /* Light background for the whole page */
+  color: #333;
+  line-height: 1.6;
+}
+
+.app-container {
+  max-width: 900px;
+  /* Slightly wider for a more modern feel */
+  margin: 20px auto;
+  /* Add some margin at the top */
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  /* Modern font stack */
+  background-color: #ffffff;
+  /* White background for the main app container */
+  border-radius: 12px;
+  /* Rounded corners for the main container */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  /* Softer, more pronounced shadow */
+}
+
+.home-page-container {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  /* Space between sections */
+}
+
+.card {
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 25px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.card:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.card h2 {
+  font-size: 22px;
+  color: #2c3e50;
+  /* Darker, more professional blue */
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e0e0e0;
+  /* Thinner, lighter border */
+}
+
+.soap-notes-section p,
+.conversation-recorder-section p {
+  font-size: 16px;
+  color: #555;
+  margin-bottom: 20px;
+}
+
+.input-group {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.input-group label {
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #34495e;
+  /* Another shade of blue-gray */
+  font-size: 15px;
+}
+
+input[type="text"],
+input[type="file"] {
+  padding: 12px 15px;
+  border: 1px solid #d1d5db;
+  /* Lighter gray border */
+  border-radius: 6px;
+  font-size: 16px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input[type="text"]:focus,
+input[type="file"]:focus {
+  border-color: #3b82f6;
+  /* Blue border on focus */
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  /* Subtle blue glow */
+  outline: none;
+}
+
+.action-button {
+  background-color: #3b82f6;
+  /* A nice blue */
+  color: white;
+  padding: 12px 25px;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s ease;
+  align-self: flex-start;
+  /* Align button to the start if in a flex container */
+}
+
+.action-button:hover {
+  background-color: #2563eb;
+  /* Darker blue on hover */
+}
+
+.action-button:disabled {
+  background-color: #9ca3af;
+  /* Gray when disabled */
+}
+
+.error-message {
+  color: #ef4444;
+  /* Red for errors */
+  background-color: #fee2e2;
+  /* Light red background */
+  border: 1px solid #fca5a5;
+  /* Red border */
+  padding: 10px 15px;
+  border-radius: 6px;
+  margin-top: 15px;
+  font-size: 15px;
+}
+
+.results-output {
+  margin-top: 25px;
+  padding: 20px;
+  background-color: #f9fafb;
+  /* Very light gray for results background */
+  border: 1px solid #e5e7eb;
+  /* Light border */
+  border-radius: 8px;
+}
+
+.results-output h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #1f2937;
+  /* Dark gray for heading */
+  font-size: 18px;
+}
+
+.results-output pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  background-color: #ffffff;
+  /* White background for the preformatted text */
+  padding: 15px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  /* Slightly lighter dark gray for text */
+  font-family: 'Courier New', Courier, monospace;
+  /* Monospace for code/output */
+  font-size: 14px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.section-divider {
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: 40px 0;
+  /* More space around the divider */
+}
+
+/* Adjustments to existing styles for consistency */
+h1 {
+  color: #111827;
+  /* Even darker for main title */
+  font-size: 28px;
+  /* Larger main title */
+  margin-bottom: 30px;
+}
+
+.transcript-container {
+  background-color: #ffffff;
+  /* Ensure cards have white background */
+  /* box-shadow is already defined in .card, so it will apply if .transcript-container also has .card */
+}
+
+.conversation-recorder-section .card {
+  /* If ConversationRecorder is wrapped in a card */
+  padding: 0;
+  /* Remove padding if ConversationRecorder handles its own */
+  box-shadow: none;
+  /* Remove double shadow if ConversationRecorder is already a card */
+}
+
+/* Ensure ConversationRecorder's h1 is styled if it's the main title of its section */
+.conversation-recorder-section>h1,
+.conversation-recorder-section>div>h1 {
+  /* If h1 is inside the ConversationRecorder component */
+  font-size: 22px;
+  color: #2c3e50;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e0e0e0;
+  text-align: left;
+  /* Align section titles to the left */
+}
+
+/* Specific styling for the ConversationRecorder if it's not already a card */
+.conversation-recorder-section>div:not(.card) {
+  /* Target the direct child div of recorder section if it's not a card */
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 25px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Ensure buttons within ConversationRecorder also get a modern feel if not already covered */
+.conversation-recorder-section button {
+  /* Assuming general button styles are good, but can override if needed */
+  /* e.g., border-radius: 6px; */
+}
+
+/* Styles for Tabbed UI */
+.app-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.app-header h1 {
+  font-size: 32px;
+  /* Larger title for the app */
+  color: #1a202c;
+  /* Darker, more prominent color */
+  margin-bottom: 8px;
+}
+
+.app-header p {
+  font-size: 18px;
+  color: #4a5568;
+  /* Softer color for subtitle */
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.tab-navigation {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 25px;
+  border-bottom: 2px solid #e2e8f0;
+  /* Separator line for tabs */
+}
+
+.tab-button {
+  padding: 12px 25px;
+  font-size: 17px;
+  /* Slightly larger tab font */
+  font-weight: 500;
+  /* Medium weight for tabs */
+  color: #4a5568;
+  /* Default tab color */
+  background-color: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  /* For active indicator */
+  cursor: pointer;
+  transition: color 0.2s ease, border-bottom-color 0.2s ease;
+  margin: 0 5px;
+  /* Spacing between tabs */
+  border-radius: 0;
+  /* Tabs are usually not rounded like general buttons */
+  transform: none;
+  /* Remove general button hover transform */
+  opacity: 1;
+  /* Ensure full opacity */
+}
+
+.tab-button:hover {
+  color: #2c5282;
+  /* Darker blue on hover */
+  opacity: 1;
+  transform: none;
+}
+
+.tab-button.active {
+  color: #3b82f6;
+  /* Active tab color (same as action-button) */
+  border-bottom-color: #3b82f6;
+  /* Active tab indicator */
+  font-weight: 600;
+  /* Bolder active tab */
+}
+
+.tab-content {
+  padding: 25px;
+  /* Padding within the content area of the card */
+  /* .card styles (background, shadow, border-radius) are already applied */
+}
+
+.card-content h2 {
+  /* Styles for h2 within tab content if needed */
+  font-size: 24px;
+  color: #2c3e50;
+  margin-top: 0;
+  /* Remove top margin if it's the first element */
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.card-content p {
+  font-size: 16px;
+  color: #555;
+  margin-bottom: 20px;
+  line-height: 1.7;
+}
+
+.or-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 25px 0;
+  color: #718096;
+  /* Gray for the "OR" text */
+}
+
+.or-divider::before,
+.or-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #e2e8f0;
+  /* Light gray line */
+}
+
+.or-divider span {
+  padding: 0 15px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.file-info {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #4a5568;
+  background-color: #f0f4f8;
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+/* Ensure ConversationRecorder content fits well within the tab */
+.conversation-recorder-section>div:not(.card),
+.tab-content>.conversation-recorder-section>div {
+  /* If ConversationRecorder is directly in tab-content */
+  padding: 0;
+  /* Remove padding if tab-content already has it */
+  box-shadow: none;
+  /* Remove shadow if tab-content (card) has it */
+  border-radius: 0;
+  /* Remove radius if tab-content (card) has it */
+  background-color: transparent;
+  /* Inherit background from tab-content */
+}
+
+/* If ConversationRecorder itself has an h1, style it as a section title */
+.tab-content .conversation-recorder-section h1 {
+  font-size: 24px;
+  color: #2c3e50;
+  margin-top: 0;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e9ecef;
+  text-align: left;
+}
