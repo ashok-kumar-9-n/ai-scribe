@@ -1,8 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 .app-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-  font-family: Arial, sans-serif;
+  width: 100%;
+  /* Occupy full width */
+  min-height: 100vh;
+  /* Ensure it takes at least full viewport height */
+  margin: 0;
+  /* Remove auto margins */
+  padding: 0;
+  /* Child components will manage their main padding */
+  /* font-family is now set on body and should be inherited */
+  box-sizing: border-box;
+  /* Important for width: 100% and padding */
 }
 
 h1 {
@@ -165,7 +174,6 @@ button:hover {
 h2 {
   margin-top: 0;
   color: #555;
-  border-bottom: 1px solid #ddd;
   padding-bottom: 10px;
   margin-bottom: 20px;
 }
@@ -221,22 +229,33 @@ body {
   /* Light background for the whole page */
   color: #333;
   line-height: 1.6;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  /* Modern font stack for the whole app */
+  margin: 0;
+  /* Remove default body margin */
+  padding: 0;
+  /* Remove default body padding */
 }
 
 .app-container {
-  max-width: 900px;
-  /* Slightly wider for a more modern feel */
-  margin: 20px auto;
-  /* Add some margin at the top */
+  width: 100%;
+  /* Occupy full width */
+  min-height: 100vh;
+  /* Ensure it takes at least full viewport height */
+  margin: 0;
+  /* Remove auto margins */
   padding: 20px;
+  /* Retain some padding for content from screen edges */
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  /* Modern font stack */
-  background-color: #ffffff;
-  /* White background for the main app container */
-  border-radius: 12px;
-  /* Rounded corners for the main container */
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  /* Softer, more pronounced shadow */
+  /* Ensure font consistency if not inherited perfectly */
+  /* background-color: #ffffff; */
+  /* Removed white background */
+  /* border-radius: 12px; */
+  /* Removed rounded corners */
+  /* box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); */
+  /* Removed shadow */
+  box-sizing: border-box;
+  /* Important for width: 100% and padding */
 }
 
 .home-page-container {
@@ -498,271 +517,391 @@ h1 {
 
 .tab-button:hover {
   color: #2c5282;
-  /* Darker blue on hover */
-  opacity: 1;
-  transform: none;
+  /* Darker blue for tab hover */
+  border-bottom-color: #a0aec0;
+  /* Light gray indicator on hover */
 }
 
 .tab-button.active {
-  color: #3b82f6;
-  /* Active tab color (same as action-button) */
-  border-bottom-color: #3b82f6;
-  /* Active tab indicator */
+  color: #2c5282;
+  /* Active tab color */
+  border-bottom-color: #2c5282;
+  /* Active tab indicator color */
   font-weight: 600;
   /* Bolder active tab */
 }
 
 .tab-content {
-  padding: 25px;
-  /* Padding within the content area of the card */
-  /* .card styles (background, shadow, border-radius) are already applied */
-}
-
-.card-content h2 {
-  /* Styles for h2 within tab content if needed */
-  font-size: 24px;
-  color: #2c3e50;
-  margin-top: 0;
-  /* Remove top margin if it's the first element */
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.card-content p {
-  font-size: 16px;
-  color: #555;
-  margin-bottom: 20px;
-  line-height: 1.7;
-}
-
-.or-divider {
-  display: flex;
-  align-items: center;
-  text-align: center;
-  margin: 25px 0;
-  color: #718096;
-  /* Gray for the "OR" text */
-}
-
-.or-divider::before,
-.or-divider::after {
-  content: '';
-  flex: 1;
-  border-bottom: 1px solid #e2e8f0;
-  /* Light gray line */
-}
-
-.or-divider span {
-  padding: 0 15px;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.file-info {
-  margin-top: 10px;
-  font-size: 14px;
-  color: #4a5568;
-  background-color: #f0f4f8;
-  padding: 8px 12px;
-  border-radius: 4px;
-  border: 1px solid #e2e8f0;
-}
-
-/* Ensure ConversationRecorder content fits well within the tab */
-.conversation-recorder-section>div:not(.card),
-.tab-content>.conversation-recorder-section>div {
-  /* If ConversationRecorder is directly in tab-content */
-  padding: 0;
-  /* Remove padding if tab-content already has it */
-  box-shadow: none;
-  /* Remove shadow if tab-content (card) has it */
-  border-radius: 0;
-  /* Remove radius if tab-content (card) has it */
-  background-color: transparent;
-  /* Inherit background from tab-content */
-}
-
-/* If ConversationRecorder itself has an h1, style it as a section title */
-.tab-content .conversation-recorder-section h1 {
-  font-size: 24px;
-  color: #2c3e50;
-  margin-top: 0;
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #e9ecef;
-  text-align: left;
-}
-
-/* Styles for PreviousTranscriptsPage */
-.previous-transcripts-page {
   padding: 20px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.07);
 }
 
-.previous-transcripts-page h2 {
-  margin-bottom: 20px;
-  color: #333;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 10px;
+/* ========================================= */
+/* Transcript Detail Page Styles             */
+/* ========================================= */
+
+.transcript-detail-page {
+  width: 100%;
+  /* Vertical padding only, horizontal from .app-container's padding */
+  background-color: transparent;
+  /* Make background transparent */
+  /* Remove shadow for transparent bg */
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  color: #334155;
+  /* slate-700 */
+  box-sizing: border-box;
+  /* Crucial for width: 100% and padding */
+  overflow-x: hidden;
+  /* Prevent horizontal scroll on this container */
 }
 
-.back-link {
-  display: inline-block;
+.transcript-detail-page .loading-state,
+.transcript-detail-page .error-state,
+.transcript-detail-page .empty-state {
+  text-align: center;
+  padding: 50px 20px;
+  font-size: 1.1em;
+  color: #64748b;
+  /* slate-500 */
+}
+
+.transcript-detail-page .error-message-box {
+  color: #dc2626;
+  /* red-600 */
+  background-color: #fee2e2;
+  /* red-100 */
+  border: 1px solid #fca5a5;
+  /* red-300 */
+  padding: 15px;
+  border-radius: 8px;
   margin-bottom: 20px;
-  color: #007bff;
+}
+
+.transcript-detail-page .page-header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e2e8f0;
+  /* slate-200 */
+}
+
+.transcript-detail-page .page-main-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: #1e293b;
+  /* slate-800 */
+  margin: 0;
+}
+
+.transcript-detail-page .back-link-styled {
+  font-size: 15px;
+  font-weight: 500;
+  color: #475569;
+  /* slate-600 */
   text-decoration: none;
-  font-weight: bold;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e0;
+  /* slate-300 */
+  transition: all 0.2s ease-in-out;
 }
 
-.back-link:hover {
-  text-decoration: underline;
+.transcript-detail-page .back-link-styled:hover {
+  background-color: #f1f5f9;
+  /* slate-100 */
+  border-color: #94a3b8;
+  /* slate-400 */
+  color: #1e293b;
+  /* slate-800 */
 }
 
-.transcripts-list {
+.transcript-detail-page .detail-section {
+  margin-bottom: 35px;
+  padding: 25px;
+  background-color: #f8fafc;
+  /* slate-50 */
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  /* slate-200 */
+}
+
+.transcript-detail-page .detail-section:last-child {
+  margin-bottom: 0;
+}
+
+.transcript-detail-page .section-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #334155;
+  /* slate-700 */
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.transcript-detail-page .media-player-element {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #cbd5e0;
+  /* slate-300 */
+}
+
+/* Record Information Section */
+.transcript-detail-page .info-details-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  /* Responsive grid */
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  /* Responsive columns */
   gap: 20px;
 }
 
-.transcript-item-link {
-  text-decoration: none;
-  color: inherit;
+.transcript-detail-page .info-item {
+  background-color: #ffffff;
+  padding: 15px 20px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  /* slate-200 */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
 }
 
-.transcript-item.card {
-  /* Already has card styles, can add specifics */
+.transcript-detail-page .info-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+  /* slate-500 */
+  margin-bottom: 6px;
+}
+
+.transcript-detail-page .info-value {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1e293b;
+  /* slate-800 */
+  word-break: break-word;
+}
+
+/* Transcript and SOAP Notes Lists */
+.transcript-detail-page .interactive-list-container {
+  max-height: 450px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Prevent horizontal scroll within these containers */
+  padding: 10px;
+  /* Padding around the list items */
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  /* slate-200 */
+}
+
+.transcript-detail-page .soap-list-container {
+  max-height: none;
+  /* Allow SOAP notes to expand */
+}
+
+.transcript-detail-page .interactive-item {
+  margin-bottom: 12px;
   padding: 15px;
-  background-color: #fff;
-  border: 1px solid #e0e0e0;
+  border: 1px solid #e2e8f0;
+  /* slate-200 */
   border-radius: 8px;
-  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  background-color: #ffffff;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
 }
 
-.transcript-item.card:hover {
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  transform: translateY(-3px);
+.transcript-detail-page .interactive-item:last-child {
+  margin-bottom: 0;
 }
 
-.transcript-item h3 {
-  margin-top: 0;
-  margin-bottom: 10px;
-  font-size: 1.1em;
-  color: #007bff;
+.transcript-detail-page .interactive-item:hover {
+  background-color: #f1f5f9;
+  /* slate-100 */
+  border-color: #94a3b8;
+  /* slate-400 */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
 }
 
-.transcript-item p {
-  font-size: 0.9em;
-  color: #555;
-  margin-bottom: 5px;
+.transcript-detail-page .speaker-text {
+  margin: 0 0 8px 0;
+  font-weight: 600;
+  color: #0f766e;
+  /* teal-700 for speaker */
+  font-size: 1em;
 }
 
-/* Styles for Transcript Detail View (within PreviousTranscriptsPage) */
-.transcript-detail-view {
-  padding: 20px;
-  background-color: #f9f9f9;
-  /* Light background for the detail page */
-  border-radius: 8px;
+.transcript-detail-page .timestamp-text {
+  font-size: 0.85em;
+  color: #64748b;
+  /* slate-500 */
+  margin-left: 8px;
+  font-weight: 400;
 }
 
-.transcript-detail-page h2 {
-  color: #333;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 10px;
+.transcript-detail-page .main-text {
+  margin: 0;
+  color: #334155;
+  /* slate-700 */
+  line-height: 1.6;
+  font-size: 1em;
+}
+
+/* SOAP Notes Specifics */
+.transcript-detail-page .soap-category {
   margin-bottom: 25px;
 }
 
-.details-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
-  padding: 20px;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+.transcript-detail-page .soap-category:last-child {
+  margin-bottom: 0;
 }
 
-.detail-item {
-  padding: 10px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.detail-item:last-child {
-  border-bottom: none;
-}
-
-.detail-item strong {
-  display: block;
-  font-size: 0.9em;
-  color: #555;
-  margin-bottom: 5px;
-}
-
-.detail-item p,
-.detail-item a {
-  font-size: 1em;
-  color: #333;
-  word-break: break-all;
-  /* For long URLs or IDs */
-}
-
-.detail-item a {
-  color: #007bff;
-}
-
-.detail-item a:hover {
-  text-decoration: underline;
-}
-
-.detail-item.full-width {
-  grid-column: 1 / -1;
-  /* Make item span full width if needed */
-}
-
-.section {
-  margin-bottom: 30px;
-  padding: 20px;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.section h3 {
-  font-size: 1.4em;
-  color: #444;
+.transcript-detail-page .soap-category-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #475569;
+  /* slate-600 */
   margin-top: 0;
   margin-bottom: 15px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e2e8f0;
+  /* slate-200 */
+  text-transform: capitalize;
 }
 
-.code-block {
-  background-color: #fdfdfd;
-  border: 1px solid #eee;
-  padding: 15px;
+.transcript-detail-page .soap-label {
+  margin: 0 0 8px 0;
+  font-weight: 600;
+  color: #1e293b;
+  /* slate-800 */
+  font-size: 1.05em;
+}
+
+.transcript-detail-page .soap-explanation {
+  margin: 0 0 12px 0;
+  color: #475569;
+  /* slate-600 */
+  font-size: 1em;
+  line-height: 1.6;
+}
+
+.transcript-detail-page .verbatim-toggle-button {
+  background-color: #3b82f6;
+  /* blue-500 */
+  color: white;
+  border: none;
+  padding: 8px 14px;
   border-radius: 6px;
-  font-family: 'Courier New', Courier, monospace;
+  cursor: pointer;
   font-size: 0.9em;
+  font-weight: 500;
+  margin-bottom: 10px;
+  transition: background-color 0.2s ease;
+}
+
+.transcript-detail-page .verbatim-toggle-button:hover {
+  background-color: #2563eb;
+  /* blue-600 */
+}
+
+.transcript-detail-page .verbatim-text {
+  margin: 10px 0 0;
+  font-style: italic;
+  color: #475569;
+  /* slate-600 */
+  background-color: #f1f5f9;
+  /* slate-100 */
+  padding: 12px 15px;
+  border-radius: 6px;
+  border-left: 4px solid #60a5fa;
+  /* blue-400 */
+  line-height: 1.5;
+}
+
+.transcript-detail-page .soap-timestamp {
+  margin-top: 10px;
+  font-size: 0.9em;
+  font-weight: 500;
+}
+
+.transcript-detail-page .code-block-fallback {
   white-space: pre-wrap;
   word-break: break-all;
-  max-height: 500px;
-  overflow-y: auto;
-  color: #333;
+  padding: 10px 15px;
+  background: #f1f5f9;
+  /* slate-100 */
+  border: 1px solid #e2e8f0;
+  /* slate-200 */
+  border-radius: 6px;
+  font-size: 14px;
+  color: #334155;
+  /* slate-700 */
+  margin-top: 10px;
 }
 
-.card-content {
-  /* General utility for consistent padding if not already a card */
-  padding: 20px;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
-  margin-bottom: 20px;
-  /* Add some space between cards */
+/* Two-column layout for Transcript Detail Page */
+.transcript-detail-page .detail-page-main-content {
+  display: flex;
+  flex-wrap: wrap;
+  /* Allow wrapping on smaller screens if necessary */
+  gap: 30px;
+  /* Space between columns */
 }
 
-/* Ensure .card-content is not doubly applied if element already has .card */
-.card.card-content {
-  /* Styles here would override or merge. If .card already has padding/bg, this might be redundant */
-  /* For now, let's assume .card styles take precedence or are compatible */
+.transcript-detail-page .left-column {
+  flex-grow: 2;
+  /* Approx 40% if right is 3 */
+  flex-shrink: 1;
+  flex-basis: 0;
+  /* Allow it to grow from 0 based on flex-grow */
+  min-width: 280px;
+  /* Adjusted min-width slightly */
+  /* Minimum width before wrapping or shrinking too much */
+  display: flex;
+  flex-direction: column;
+  /* Space between sections within the left column */
+  overflow-x: hidden;
+  /* Prevent content within from causing overflow */
+}
+
+.transcript-detail-page .right-column {
+  flex-grow: 3;
+  /* Approx 60% if left is 2 */
+  flex-shrink: 1;
+  flex-basis: 0;
+  /* Allow it to grow from 0 based on flex-grow */
+  min-width: 320px;
+  /* Adjusted min-width slightly */
+  /* Minimum width */
+  display: flex;
+  flex-direction: column;
+  /* Space between sections within the right column */
+  overflow-x: hidden;
+  /* Prevent content within from causing overflow */
+}
+
+/* Ensure sections within columns don't have excessive bottom margin
+   if they are the last child, as the column gap handles it */
+.transcript-detail-page .left-column .detail-section:last-child,
+.transcript-detail-page .right-column .detail-section:last-child {
+  margin-bottom: 0;
+}
+
+/* Responsive adjustments: stack columns on smaller screens */
+@media (max-width: 800px) {
+
+  /* Adjust breakpoint as needed */
+  .transcript-detail-page .detail-page-main-content {
+    flex-direction: column;
+  }
+
+  .transcript-detail-page .left-column,
+  .transcript-detail-page .right-column {
+    flex: 1 1 100%;
+    /* Each column takes full width when stacked */
+    min-width: auto;
+  }
 }
