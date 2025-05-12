@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './IdManagementFab.css'; // We'll create this CSS file next
 
 function IdManagementFab() {
-    const [doctorId, setDoctorId] = useState('');
+    const [doctorId, setDoctorId] = useState('100');
     const [patientId, setPatientId] = useState('');
     const [isOpen, setIsOpen] = useState(false);
 
@@ -15,6 +15,7 @@ function IdManagementFab() {
         if (storedPatientId) {
             setPatientId(storedPatientId);
         }
+        handleGeneratePatientId();
     }, []);
 
     const handleGeneratePatientId = () => {
