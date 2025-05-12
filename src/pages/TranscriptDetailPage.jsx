@@ -2,26 +2,34 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
 const PREFERRED_SOAP_ORDER = ['subjective', 'objective', 'assessment', 'plan'];
+const SPEAKER_COLORS = ['#0f766e', '#0369a1', '#6d28d9', '#be185d', '#065f46', '#0c4a6e']; // teal-700, sky-700, violet-700, pink-700, emerald-800, cyan-800
+const SOAP_LABEL_COLORS = ['#7c3aed', '#db2777', '#ea580c', '#16a34a', '#65a30d', '#0891b2']; // purple-600, pink-600, orange-600, green-600, lime-600, cyan-600
 
-// Helper function to format seconds into MM:SS or HH:MM:SS
-const formatTimestamp = (totalSeconds) => {
-    if (isNaN(totalSeconds) || totalSeconds < 0) {
-        return "00:00";
+// Helper function to get a consistent color for a string label
+const getLabelColor = (label, colorMap, colorPalette) => {
+    if (!colorMap[label]) {
+        // Assign a new color if this label hasn't been seen
+        // This simple version might repeat colors if many unique labels
+        const colorIndex = Object.keys(colorMap).length % colorPalette.length;
+        colorMap[label] = colorPalette[colorIndex];
     }
+    return colorMap[label];
+};
+let soapLabelColorMap = {}; // Needs to be reset if component can remount with different data sets or be module-level if shared
+
+const formatTimestamp = (totalSeconds) => {
+    if (isNaN(totalSeconds) || totalSeconds < 0) return "00:00";
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = Math.floor(totalSeconds % 60);
-
     const paddedSeconds = seconds.toString().padStart(2, '0');
     const paddedMinutes = minutes.toString().padStart(2, '0');
-
     if (hours > 0) {
         const paddedHours = hours.toString().padStart(2, '0');
         return `${paddedHours}:${paddedMinutes}:${paddedSeconds}`;
     }
     return `${paddedMinutes}:${paddedSeconds}`;
 };
-
 
 function TranscriptDetailPage() {
     const { recordId } = useParams();
@@ -37,9 +45,14 @@ function TranscriptDetailPage() {
     const [activeChunkIndex, setActiveChunkIndex] = useState(-1);
     const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
     const [userScrolled, setUserScrolled] = useState(false);
-    // const [expandedSoapQuotes, setExpandedSoapQuotes] = useState({}); // No longer needed
     const [activeSoapTab, setActiveSoapTab] = useState('');
     const [orderedSoapKeys, setOrderedSoapKeys] = useState([]);
+
+    // Reset color map when new data is fetched to ensure consistency for that dataset
+    useEffect(() => {
+        soapLabelColorMap = {};
+    }, [recordId]);
+
 
     useEffect(() => {
         if (transcriptDetails && transcriptDetails.transcript) {
@@ -47,13 +60,25 @@ function TranscriptDetailPage() {
         }
         if (transcriptDetails && transcriptDetails.soap_notes && typeof transcriptDetails.soap_notes === 'object') {
             const availableKeys = Object.keys(transcriptDetails.soap_notes);
-            const currentOrderedKeys = PREFERRED_SOAP_ORDER.filter(key => availableKeys.includes(key.toLowerCase()) || availableKeys.includes(key.toUpperCase()));
+            let currentOrderedKeys = PREFERRED_SOAP_ORDER.filter(key =>
+                availableKeys.some(ak => ak.toLowerCase() === key.toLowerCase())
+            );
+            const preferredKeysLower = PREFERRED_SOAP_ORDER.map(k => k.toLowerCase());
             availableKeys.forEach(key => {
-                if (!currentOrderedKeys.some(orderedKey => orderedKey.toLowerCase() === key.toLowerCase())) {
-                    currentOrderedKeys.push(key);
+                if (!preferredKeysLower.includes(key.toLowerCase())) {
+                    if (!currentOrderedKeys.some(cok => cok.toLowerCase() === key.toLowerCase())) {
+                        currentOrderedKeys.push(key);
+                    }
                 }
             });
+            // Ensure original casing from availableKeys is used for tabs if matched from PREFERRED_SOAP_ORDER
+            currentOrderedKeys = currentOrderedKeys.map(pk => {
+                const foundKey = availableKeys.find(ak => ak.toLowerCase() === pk.toLowerCase());
+                return foundKey || pk;
+            });
+
             setOrderedSoapKeys(currentOrderedKeys);
+
             if (!activeSoapTab && currentOrderedKeys.length > 0) {
                 let firstNonEmptyTab = '';
                 for (const key of currentOrderedKeys) {
@@ -74,7 +99,7 @@ function TranscriptDetailPage() {
     useEffect(() => {
         if (effectRan.current === true && process.env.NODE_ENV === 'development') return;
         const fetchTranscriptById = async () => {
-            setIsLoading(true); setError(''); setTranscriptDetails(null); /*setExpandedSoapQuotes({});*/ setActiveChunkIndex(-1); setAutoScrollEnabled(true); setUserScrolled(false); setActiveSoapTab(''); setOrderedSoapKeys([]);
+            setIsLoading(true); setError(''); setTranscriptDetails(null); setActiveChunkIndex(-1); setAutoScrollEnabled(true); setUserScrolled(false); setActiveSoapTab(''); setOrderedSoapKeys([]); soapLabelColorMap = {};
             const apiUrl = `http://localhost:8000/api/record/get-record-by-id`;
             try {
                 const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ record_id: recordId }), });
@@ -132,8 +157,6 @@ function TranscriptDetailPage() {
         }
     };
 
-    // const toggleSoapQuote = (id) => setExpandedSoapQuotes(prev => ({ ...prev, [id]: !prev[id] })); // No longer needed
-
     const handleResumeScroll = () => {
         setAutoScrollEnabled(true); setUserScrolled(false);
         if (activeChunkIndex !== -1 && chunkRefs.current[activeChunkIndex]?.current) {
@@ -141,24 +164,32 @@ function TranscriptDetailPage() {
         }
     };
 
-    const renderTranscriptChunk = (chunk, index) => (
-        <div key={`transcript-${index}`} ref={chunkRefs.current[index]} className={`transcript-chunk interactive-item ${index === activeChunkIndex ? 'active-chunk' : ''}`} onClick={() => typeof chunk.start_timestamp === 'number' && handleMediaSeek(chunk.start_timestamp)}>
-            <p className="speaker-text">Speaker {chunk.speaker !== undefined ? chunk.speaker : 'N/A'}
-                {typeof chunk.start_timestamp === 'number' && typeof chunk.end_timestamp === 'number' && (
-                    <span className="timestamp-text">({formatTimestamp(chunk.start_timestamp)} - {formatTimestamp(chunk.end_timestamp)})</span>
-                )}
-            </p>
-            <p className="main-text">{chunk.text}</p>
-        </div>
-    );
+    const renderTranscriptChunk = (chunk, index) => {
+        const speakerColor = (typeof chunk.speaker === 'number' && chunk.speaker >= 0)
+            ? SPEAKER_COLORS[chunk.speaker % SPEAKER_COLORS.length]
+            : '#0f766e'; // Default color if speaker is undefined or not a number
+
+        return (
+            <div key={`transcript-${index}`} ref={chunkRefs.current[index]} className={`transcript-chunk interactive-item ${index === activeChunkIndex ? 'active-chunk' : ''}`} onClick={() => typeof chunk.start_timestamp === 'number' && handleMediaSeek(chunk.start_timestamp)}>
+                <p className="speaker-text" style={{ color: speakerColor }}>
+                    Speaker {chunk.speaker !== undefined ? chunk.speaker : 'N/A'}
+                    {typeof chunk.start_timestamp === 'number' && typeof chunk.end_timestamp === 'number' && (
+                        <span className="timestamp-text">({formatTimestamp(chunk.start_timestamp)} - {formatTimestamp(chunk.end_timestamp)})</span>
+                    )}
+                </p>
+                <p className="main-text">{chunk.text}</p>
+            </div>
+        );
+    };
 
     const renderSoapNoteItem = (item, sectionKey, itemIndex) => {
         const itemId = `soap-${sectionKey}-${itemIndex}`;
-        // const isExpanded = expandedSoapQuotes[itemId]; // No longer needed
         const hasTimestamp = typeof item.timestamp === 'number';
+        const labelColor = item.label ? getLabelColor(item.label, soapLabelColorMap, SOAP_LABEL_COLORS) : '#7c3aed';
+
         return (
             <div key={itemId} className={`soap-note-item ${hasTimestamp ? 'interactive-item' : ''}`} onClick={hasTimestamp ? () => handleMediaSeek(item.timestamp) : undefined}>
-                {item.label && <p className="soap-label">{item.label}</p>}
+                {item.label && <p className="soap-label" style={{ color: labelColor }}>{item.label}</p>}
                 {item.explanation && <p className="soap-explanation">{item.explanation}</p>}
                 {item.quote && (
                     <p className="verbatim-text">
