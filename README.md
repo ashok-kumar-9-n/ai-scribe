@@ -24,9 +24,8 @@ The frontend of AI-Scribe provides an intuitive interface for doctors to upload 
 
 The frontend is deployed and accessible at:
 
-```
-https://ai-scribe-seven.vercel.app/
-```
+[Link to Web App](https://ai-scribe-git-main-ashoks-projects-30ec87dd.vercel.app/)
+
 
 ---
 
