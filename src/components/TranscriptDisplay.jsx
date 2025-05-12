@@ -8,6 +8,15 @@ const getSpeakerColor = (speakerId) => {
     return colors[index];
 };
 
+// Helper function to format seconds into MM:SS.mmm
+const formatTimestamp = (seconds) => {
+    if (seconds === null || seconds === undefined) return '00:00.000';
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    const millis = Math.floor((remainingSeconds - Math.floor(remainingSeconds)) * 1000);
+    return `${String(minutes).padStart(2, '0')}:${String(Math.floor(remainingSeconds)).padStart(2, '0')}.${String(millis).padStart(3, '0')}`;
+};
+
 function TranscriptDisplay({ transcript, onClearTranscript }) {
     return (
         <div className="transcript-container">
@@ -25,7 +34,8 @@ function TranscriptDisplay({ transcript, onClearTranscript }) {
                 {transcript.length > 0 ? (
                     <div className="transcript-conversation">
                         {transcript.map((segment, index) => {
-                            const timestamp = new Date().toLocaleTimeString(); // Consider if timestamp should be part of segment data
+                            // Use segment.startTime, segment.endTime, and segment.words for more detailed display if needed
+                            const displayTimestamp = segment.startTime !== undefined ? formatTimestamp(segment.startTime) : 'N/A';
                             return (
                                 <div key={index} className="transcript-segment">
                                     <div className="segment-header">
@@ -35,7 +45,7 @@ function TranscriptDisplay({ transcript, onClearTranscript }) {
                                         >
                                             Speaker {segment.speaker !== 'unknown' ? segment.speaker : '?'}
                                         </span>
-                                        <span className="timestamp">{timestamp}</span>
+                                        <span className="timestamp">{displayTimestamp}</span>
                                     </div>
                                     <div className="segment-text">{segment.text}</div>
                                 </div>

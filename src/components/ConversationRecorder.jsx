@@ -21,7 +21,7 @@ function ConversationRecorder() {
     const handleSocketOpen = useCallback(() => {
         console.log('Recorder: Deepgram connection opened');
         if (mediaRecorderRef.current) {
-            mediaRecorderRef.current.start(250);
+            mediaRecorderRef.current.start(2000);
         }
     }, []);
 
@@ -34,47 +34,105 @@ function ConversationRecorder() {
                 return;
             }
             if (data.channel && data.channel.alternatives && data.channel.alternatives[0]) {
-                const receivedTranscript = data.channel.alternatives[0];
-                if (receivedTranscript.words && receivedTranscript.words.length > 0) {
-                    const speakerSegments = [];
-                    let currentSpeaker = null;
-                    let currentText = '';
-                    receivedTranscript.words.forEach(word => {
-                        if (currentSpeaker !== word.speaker && word.speaker !== undefined) {
-                            if (currentSpeaker !== null && currentText.trim()) {
-                                speakerSegments.push({ speaker: currentSpeaker, text: currentText.trim() });
+                const receivedAlternative = data.channel.alternatives[0]; // Renamed for clarity
+                if (receivedAlternative.words && receivedAlternative.words.length > 0) {
+                    const newSpeakerSegmentsFromBatch = [];
+                    let currentSpeakerInBatch = null;
+                    let currentWordsForSegment = [];
+
+                    receivedAlternative.words.forEach(word => {
+                        const wordData = {
+                            text: word.punctuated_word || word.word,
+                            start: word.start,
+                            end: word.end,
+                            confidence: word.confidence,
+                            // Ensure speaker is a number or a defined value, default to 0 if undefined
+                            speaker: typeof word.speaker === 'number' ? word.speaker : 0
+                        };
+
+                        if (currentSpeakerInBatch !== wordData.speaker) { // Compare with wordData.speaker
+                            if (currentSpeakerInBatch !== null && currentWordsForSegment.length > 0) {
+                                newSpeakerSegmentsFromBatch.push({
+                                    speaker: currentSpeakerInBatch,
+                                    words: [...currentWordsForSegment],
+                                    startTime: currentWordsForSegment[0].start,
+                                    endTime: currentWordsForSegment[currentWordsForSegment.length - 1].end,
+                                    text: currentWordsForSegment.map(w => w.text).join(' ')
+                                });
                             }
-                            currentSpeaker = word.speaker;
-                            currentText = word.word + ' ';
+                            currentSpeakerInBatch = wordData.speaker;
+                            currentWordsForSegment = [wordData];
                         } else {
-                            currentText += word.word + ' ';
+                            // If currentSpeakerInBatch is null (e.g. first word and speaker was undefined, now defaulted), set it.
+                            if (currentSpeakerInBatch === null) {
+                                currentSpeakerInBatch = wordData.speaker;
+                            }
+                            currentWordsForSegment.push(wordData);
                         }
                     });
-                    if (currentText.trim()) {
-                        speakerSegments.push({ speaker: currentSpeaker !== null ? currentSpeaker : 0, text: currentText.trim() });
-                    }
-                    if (speakerSegments.length > 0) {
-                        setTranscript(prev => {
-                            const newTranscript = [...prev];
-                            speakerSegments.forEach(segment => {
-                                const lastSegment = newTranscript.length > 0 ? newTranscript[newTranscript.length - 1] : null;
-                                if (lastSegment && lastSegment.speaker === segment.speaker) {
-                                    lastSegment.text += ' ' + segment.text;
-                                } else {
-                                    newTranscript.push(segment);
-                                }
-                            });
-                            return newTranscript;
+
+                    if (currentWordsForSegment.length > 0) {
+                        // Ensure currentSpeakerInBatch is not null before pushing
+                        const finalSpeakerForBatch = currentSpeakerInBatch !== null ? currentSpeakerInBatch : (receivedAlternative.words[0].speaker !== undefined ? receivedAlternative.words[0].speaker : 0);
+                        newSpeakerSegmentsFromBatch.push({
+                            speaker: finalSpeakerForBatch,
+                            words: [...currentWordsForSegment],
+                            startTime: currentWordsForSegment[0].start,
+                            endTime: currentWordsForSegment[currentWordsForSegment.length - 1].end,
+                            text: currentWordsForSegment.map(w => w.text).join(' ')
                         });
                     }
-                } else if (receivedTranscript.transcript && receivedTranscript.transcript.trim()) {
+
+                    if (newSpeakerSegmentsFromBatch.length > 0) {
+                        setTranscript(prevTranscript => {
+                            let updatedTranscript = [...prevTranscript];
+                            newSpeakerSegmentsFromBatch.forEach(incomingSegment => {
+                                let lastTranscriptSegment = updatedTranscript.length > 0 ? updatedTranscript[updatedTranscript.length - 1] : null;
+
+                                if (lastTranscriptSegment && lastTranscriptSegment.speaker === incomingSegment.speaker) {
+                                    // Merge with the last segment
+                                    const existingWordKeys = new Set(lastTranscriptSegment.words.map(w => `${w.start}-${w.text}`));
+                                    const wordsToAdd = incomingSegment.words.filter(w => !existingWordKeys.has(`${w.start}-${w.text}`));
+
+                                    if (wordsToAdd.length > 0) {
+                                        lastTranscriptSegment.words.push(...wordsToAdd);
+                                        lastTranscriptSegment.words.sort((a, b) => a.start - b.start); // Keep words sorted
+                                        lastTranscriptSegment.text = lastTranscriptSegment.words.map(w => w.text).join(' ');
+                                        if (lastTranscriptSegment.words.length > 0) { // Recalculate bounds
+                                            lastTranscriptSegment.startTime = lastTranscriptSegment.words[0].start;
+                                            lastTranscriptSegment.endTime = lastTranscriptSegment.words[lastTranscriptSegment.words.length - 1].end;
+                                        }
+                                    }
+                                } else {
+                                    // Add as a new segment
+                                    updatedTranscript.push(incomingSegment);
+                                }
+                            });
+                            return updatedTranscript;
+                        });
+                    }
+                } else if (receivedAlternative.transcript && receivedAlternative.transcript.trim()) {
+                    // Fallback for simple transcripts (no word-level timestamps)
                     setTranscript(prev => {
-                        const newText = receivedTranscript.transcript.trim();
+                        const newText = receivedAlternative.transcript.trim();
                         const lastSegment = prev.length > 0 ? prev[prev.length - 1] : null;
-                        if (lastSegment && lastSegment.speaker === 'unknown') {
-                            return [...prev.slice(0, -1), { ...lastSegment, text: lastSegment.text + ' ' + newText }];
+
+                        if (lastSegment && lastSegment.speaker === 'unknown' && (!lastSegment.words || lastSegment.words.length === 0)) {
+                            return [
+                                ...prev.slice(0, -1),
+                                { ...lastSegment, text: (lastSegment.text + ' ' + newText).trim() }
+                            ];
                         } else {
-                            return [...prev, { speaker: 'unknown', text: newText }];
+                            return [
+                                ...prev,
+                                {
+                                    speaker: 'unknown',
+                                    text: newText,
+                                    words: [], // Explicitly empty
+                                    startTime: null, // Explicitly null
+                                    endTime: null   // Explicitly null
+                                }
+                            ];
                         }
                     });
                 }
@@ -215,30 +273,36 @@ function ConversationRecorder() {
     }, [currentSocketState]);
 
     return (
-        <>
-            <h1>Conversation Recorder</h1>
-            <ErrorBanner error={appError} onClose={() => setAppError(null)} />
-            <ControlPanel
-                isRecording={isRecording}
-                isConnecting={isConnectingToSocket || (isRecording && isSocketConnecting)}
-                onStartRecording={startRecording}
-                onStopRecording={stopRecording}
-                audioUrl={audioUrl}
-                onDownloadAudio={downloadAudio}
-            />
-            <TranscriptDisplay
-                transcript={transcript}
-                onClearTranscript={() => setTranscript([])}
-            />
-            <TranscriptStats transcript={transcript} />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-around', padding: '20px' }}>
+            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-around', width: '100%' }}>
+                <div style={{ flex: '0.3', marginRight: '20px' }}>
+                    <h1>Conversation Recorder</h1>
+                    <ErrorBanner error={appError} onClose={() => setAppError(null)} />
+                    <ControlPanel
+                        isRecording={isRecording}
+                        isConnecting={isConnectingToSocket || (isRecording && isSocketConnecting)}
+                        onStartRecording={startRecording}
+                        onStopRecording={stopRecording}
+                        audioUrl={audioUrl}
+                        onDownloadAudio={downloadAudio}
+                    />
+                </div>
+                <div style={{ flex: '0.7', height: '100%', overflowY: 'auto' }}>
+                    <TranscriptDisplay
+                        transcript={transcript}
+                        onClearTranscript={() => setTranscript([])}
+                    />
+                </div>
+            </div>
             <DebugPanel
                 socketStateString={memoizedSocketStateString()}
-                isSocketHookConnecting={isSocketConnecting}
+                isSocketHookConnecting={isConnectingToSocket}
                 isAppUiConnecting={isConnectingToSocket}
                 isRecording={isRecording}
                 audioChunksCount={chunksRef.current.length}
+                transcript={transcript}
             />
-        </>
+        </div>
     );
 }
 
