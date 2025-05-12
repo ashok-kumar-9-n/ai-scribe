@@ -23,8 +23,8 @@ function PreviousTranscriptsList() {
                 setIsLoading(true);
                 setError('');
                 // TODO: Replace with dynamic doctor_id from context or props
-                const doctorId = 34;
-                const apiUrl = 'http://13.49.223.112:8000/api/record/fetch-record';
+                const doctorId = 35;
+                const apiUrl = 'http://13.49.223.112:8000/api/record/fetch-records';
 
                 try {
                     const response = await fetch(apiUrl, {
@@ -66,7 +66,7 @@ function PreviousTranscriptsList() {
     return (
         <div className="transcripts-list">
             {transcripts.map((record) => (
-                <Link to={`/record-id/${record._id}`} key={record._id} className="transcript-item-clickable card">
+                <Link to={`/record-id/${record._id}`} key={record._id} className="transcript-item-clickable"> {/* Removed 'card' class */}
                     <div className="transcript-item-content">
                         <h3>Record ID: {record._id}</h3>
                         <p><strong>Patient ID:</strong> {record.patient_id}</p>

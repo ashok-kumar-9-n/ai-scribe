@@ -27,8 +27,8 @@ function PreviousTranscriptsPage() {
                 setTranscripts([]);
 
                 // TODO: Replace with dynamic doctor_id from context or props
-                const doctorId = 34; // Keeping this as 34 from your current file
-                const apiUrl = 'http://13.49.223.112:8000/api/record/fetch-record'; // Keeping this from your current file
+                const doctorId = 35; // Keeping this as 34 from your current file
+                const apiUrl = 'http://13.49.223.112:8000/api/record/fetch-records'; // Keeping this from your current file
 
                 try {
                     const response = await fetch(apiUrl, {

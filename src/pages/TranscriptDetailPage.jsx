@@ -7,24 +7,39 @@ function TranscriptDetailPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const effectRan = useRef(false);
+
     const mediaRef = useRef(null);
+    const transcriptContainerRef = useRef(null);
+    const chunkRefs = useRef([]);
+
+    const [activeChunkIndex, setActiveChunkIndex] = useState(-1);
+    const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
+    const [userScrolled, setUserScrolled] = useState(false);
     const [expandedSoapQuotes, setExpandedSoapQuotes] = useState({});
+
+    useEffect(() => {
+        if (transcriptDetails && transcriptDetails.transcript) {
+            chunkRefs.current = transcriptDetails.transcript.map(
+                (_, i) => chunkRefs.current[i] || React.createRef()
+            );
+        }
+    }, [transcriptDetails]);
 
     useEffect(() => {
         if (effectRan.current === true && process.env.NODE_ENV === 'development') return;
         const fetchTranscriptById = async () => {
-            setIsLoading(true); setError(''); setTranscriptDetails(null); setExpandedSoapQuotes({});
-            const doctorId = 34; // TODO: Replace with dynamic doctor_id
-            const apiUrl = 'http://13.49.223.112:8000/api/record/fetch-record';
+            setIsLoading(true); setError(''); setTranscriptDetails(null); setExpandedSoapQuotes({}); setActiveChunkIndex(-1); setAutoScrollEnabled(true); setUserScrolled(false);
+            const apiUrl = `http://localhost:8000/api/record/get-record-by-id`;
             try {
-                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ doctor_id: doctorId }), });
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ record_id: recordId }), });
                 if (!response.ok) { const errorData = await response.json().catch(() => ({ message: response.statusText })); throw new Error(`API Error: ${response.status} - ${errorData.detail || errorData.message}`); }
                 const result = await response.json();
-                if (result.data && Array.isArray(result.data)) {
-                    const foundTranscript = result.data.find(t => t._id === recordId);
-                    if (foundTranscript) setTranscriptDetails(foundTranscript);
-                    else setError(`Transcript with ID ${recordId} not found.`);
-                } else { console.warn('API response error:', result); setError('Unexpected data format.'); }
+                if (result.data && typeof result.data === 'object' && !Array.isArray(result.data)) {
+                    setTranscriptDetails(result.data);
+                } else if (result.data === null || (typeof result.data === 'object' && Object.keys(result.data).length === 0)) {
+                    setError(`Transcript with ID ${recordId} not found.`);
+                }
+                else { console.warn('API response error or unexpected data format:', result); setError('Unexpected data format received from server.'); }
             } catch (err) { console.error('Fetch error:', err); setError(err.message || 'Failed to fetch details.'); }
             finally { setIsLoading(false); }
         };
@@ -32,19 +47,66 @@ function TranscriptDetailPage() {
         if (process.env.NODE_ENV === 'development') effectRan.current = true;
     }, [recordId]);
 
+    useEffect(() => {
+        const mediaElement = mediaRef.current;
+        const transcript = transcriptDetails?.transcript;
+        if (!mediaElement || !transcript || transcript.length === 0) return;
+        const handleTimeUpdate = () => {
+            const currentTime = mediaElement.currentTime;
+            let newActiveIndex = -1;
+            for (let i = 0; i < transcript.length; i++) {
+                if (currentTime >= transcript[i].start_timestamp && currentTime < transcript[i].end_timestamp) { newActiveIndex = i; break; }
+            }
+            if (newActiveIndex !== activeChunkIndex) {
+                setActiveChunkIndex(newActiveIndex);
+                if (autoScrollEnabled && newActiveIndex !== -1 && chunkRefs.current[newActiveIndex]?.current) {
+                    chunkRefs.current[newActiveIndex].current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        };
+        mediaElement.addEventListener('timeupdate', handleTimeUpdate);
+        return () => mediaElement.removeEventListener('timeupdate', handleTimeUpdate);
+    }, [mediaRef.current, transcriptDetails, activeChunkIndex, autoScrollEnabled]);
+
+    useEffect(() => {
+        const container = transcriptContainerRef.current;
+        if (!container) return;
+        const handleManualScroll = () => {
+            setUserScrolled(true);
+            if (autoScrollEnabled) {
+                setAutoScrollEnabled(false);
+            }
+        };
+        container.addEventListener('scroll', handleManualScroll, { passive: true });
+        return () => {
+            container.removeEventListener('scroll', handleManualScroll);
+        }
+    }, [autoScrollEnabled]);
+
     const handleMediaSeek = (startTime) => {
         if (mediaRef.current && typeof startTime === 'number') {
             mediaRef.current.currentTime = startTime;
             mediaRef.current.play().catch(e => console.error("Media play error:", e));
+            setAutoScrollEnabled(true);
+            setUserScrolled(false);
         }
     };
 
     const toggleSoapQuote = (id) => setExpandedSoapQuotes(prev => ({ ...prev, [id]: !prev[id] }));
 
+    const handleResumeScroll = () => {
+        setAutoScrollEnabled(true);
+        setUserScrolled(false);
+        if (activeChunkIndex !== -1 && chunkRefs.current[activeChunkIndex]?.current) {
+            chunkRefs.current[activeChunkIndex].current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    };
+
     const renderTranscriptChunk = (chunk, index) => (
         <div
             key={`transcript-${index}`}
-            className="transcript-chunk interactive-item"
+            ref={chunkRefs.current[index]}
+            className={`transcript-chunk interactive-item ${index === activeChunkIndex ? 'active-chunk' : ''}`}
             onClick={() => typeof chunk.start_timestamp === 'number' && handleMediaSeek(chunk.start_timestamp)}
         >
             <p className="speaker-text">
@@ -98,7 +160,7 @@ function TranscriptDetailPage() {
                 <Link to="/" className="back-link-styled">← Back to Home</Link>
             </header>
 
-            <div className="detail-page-main-content">
+            <div className="detail-page-main-content"> {/* Wrapper for two-column layout */}
                 <div className="left-column">
                     {transcriptDetails.s3_url && (
                         <section className="detail-section media-section">
@@ -111,8 +173,15 @@ function TranscriptDetailPage() {
 
                     {transcriptDetails.transcript && Array.isArray(transcriptDetails.transcript) && (
                         <section className="detail-section transcript-section">
-                            <h3 className="section-title">Full Transcript</h3>
-                            <div className="interactive-list-container">
+                            <div className="section-title-container">
+                                <h3 className="section-title">Full Transcript</h3>
+                                {userScrolled && !autoScrollEnabled && (
+                                    <button onClick={handleResumeScroll} className="resume-scroll-button" title="Resume Auto-Scroll">
+                                        &#x21BB;
+                                    </button>
+                                )}
+                            </div>
+                            <div className="interactive-list-container" ref={transcriptContainerRef}>
                                 {transcriptDetails.transcript.map((chunk, index) => renderTranscriptChunk(chunk, index))}
                             </div>
                         </section>
@@ -120,7 +189,7 @@ function TranscriptDetailPage() {
                 </div>
 
                 <div className="right-column">
-                    <section className="detail-section info-section"> {/* Moved Record Info here */}
+                    <section className="detail-section info-section">
                         <h3 className="section-title">Record Information</h3>
                         <div className="info-details-grid">
                             <div className="info-item"><span className="info-label">Record ID:</span> <span className="info-value">{transcriptDetails._id}</span></div>
@@ -128,7 +197,6 @@ function TranscriptDetailPage() {
                             <div className="info-item"><span className="info-label">Doctor ID:</span> <span className="info-value">{transcriptDetails.doctor_id}</span></div>
                         </div>
                     </section>
-
                     {transcriptDetails.soap_notes && (
                         <section className="detail-section soap-notes-section">
                             <h3 className="section-title">SOAP Notes</h3>

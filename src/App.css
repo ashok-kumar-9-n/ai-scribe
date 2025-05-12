@@ -1,22 +1,35 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+/* Initial global and component styles from before tab/detail page focus */
 .app-container {
   width: 100%;
-  /* Occupy full width */
   min-height: 100vh;
-  /* Ensure it takes at least full viewport height */
   margin: 0;
-  /* Remove auto margins */
   padding: 0;
-  /* Child components will manage their main padding */
-  /* font-family is now set on body and should be inherited */
+  /* Overall app padding handled by .app-container in original CSS */
   box-sizing: border-box;
-  /* Important for width: 100% and padding */
 }
+
+body {
+  background-color: #f4f7f6;
+  color: #333;
+  line-height: 1.6;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* Retaining original .app-container padding for content spacing */
+.app-container {
+  padding: 20px;
+  /* This was from an earlier version of .app-container, re-adding for content spacing */
+}
+
 
 h1 {
   text-align: center;
   color: #333;
+  /* This was an older h1 style, might be overridden by later specific h1s */
   margin-bottom: 20px;
 }
 
@@ -172,8 +185,11 @@ button:hover {
 }
 
 h2 {
+  /* General h2, might be overridden */
   margin-top: 0;
   color: #555;
+  /* border-bottom: 1px solid #ddd; */
+  /* Original had this, removing for detail page title */
   padding-bottom: 10px;
   margin-bottom: 20px;
 }
@@ -223,46 +239,11 @@ button:disabled {
   cursor: not-allowed;
 }
 
-/* Styles for HomePage and its new elements */
-body {
-  background-color: #f4f7f6;
-  /* Light background for the whole page */
-  color: #333;
-  line-height: 1.6;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  /* Modern font stack for the whole app */
-  margin: 0;
-  /* Remove default body margin */
-  padding: 0;
-  /* Remove default body padding */
-}
-
-.app-container {
-  width: 100%;
-  /* Occupy full width */
-  min-height: 100vh;
-  /* Ensure it takes at least full viewport height */
-  margin: 0;
-  /* Remove auto margins */
-  padding: 20px;
-  /* Retain some padding for content from screen edges */
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  /* Ensure font consistency if not inherited perfectly */
-  /* background-color: #ffffff; */
-  /* Removed white background */
-  /* border-radius: 12px; */
-  /* Removed rounded corners */
-  /* box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); */
-  /* Removed shadow */
-  box-sizing: border-box;
-  /* Important for width: 100% and padding */
-}
-
+/* Styles for HomePage and its new elements (from earlier iterations) */
 .home-page-container {
   display: flex;
   flex-direction: column;
   gap: 30px;
-  /* Space between sections */
 }
 
 .card {
@@ -278,20 +259,12 @@ body {
 }
 
 .card h2 {
+  /* Specific h2 for cards */
   font-size: 22px;
   color: #2c3e50;
-  /* Darker, more professional blue */
   margin-bottom: 15px;
   padding-bottom: 10px;
   border-bottom: 2px solid #e0e0e0;
-  /* Thinner, lighter border */
-}
-
-.soap-notes-section p,
-.conversation-recorder-section p {
-  font-size: 16px;
-  color: #555;
-  margin-bottom: 20px;
 }
 
 .input-group {
@@ -304,7 +277,6 @@ body {
   margin-bottom: 8px;
   font-weight: 600;
   color: #34495e;
-  /* Another shade of blue-gray */
   font-size: 15px;
 }
 
@@ -312,7 +284,6 @@ input[type="text"],
 input[type="file"] {
   padding: 12px 15px;
   border: 1px solid #d1d5db;
-  /* Lighter gray border */
   border-radius: 6px;
   font-size: 16px;
   width: 100%;
@@ -323,15 +294,12 @@ input[type="file"] {
 input[type="text"]:focus,
 input[type="file"]:focus {
   border-color: #3b82f6;
-  /* Blue border on focus */
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-  /* Subtle blue glow */
   outline: none;
 }
 
 .action-button {
   background-color: #3b82f6;
-  /* A nice blue */
   color: white;
   padding: 12px 25px;
   font-size: 16px;
@@ -340,26 +308,21 @@ input[type="file"]:focus {
   border: none;
   transition: background-color 0.2s ease;
   align-self: flex-start;
-  /* Align button to the start if in a flex container */
 }
 
 .action-button:hover {
   background-color: #2563eb;
-  /* Darker blue on hover */
 }
 
 .action-button:disabled {
   background-color: #9ca3af;
-  /* Gray when disabled */
 }
 
 .error-message {
+  /* General error message style */
   color: #ef4444;
-  /* Red for errors */
   background-color: #fee2e2;
-  /* Light red background */
   border: 1px solid #fca5a5;
-  /* Red border */
   padding: 10px 15px;
   border-radius: 6px;
   margin-top: 15px;
@@ -370,9 +333,7 @@ input[type="file"]:focus {
   margin-top: 25px;
   padding: 20px;
   background-color: #f9fafb;
-  /* Very light gray for results background */
   border: 1px solid #e5e7eb;
-  /* Light border */
   border-radius: 8px;
 }
 
@@ -380,7 +341,6 @@ input[type="file"]:focus {
   margin-top: 0;
   margin-bottom: 15px;
   color: #1f2937;
-  /* Dark gray for heading */
   font-size: 18px;
 }
 
@@ -388,14 +348,11 @@ input[type="file"]:focus {
   white-space: pre-wrap;
   word-wrap: break-word;
   background-color: #ffffff;
-  /* White background for the preformatted text */
   padding: 15px;
   border-radius: 6px;
   border: 1px solid #e5e7eb;
   color: #374151;
-  /* Slightly lighter dark gray for text */
   font-family: 'Courier New', Courier, monospace;
-  /* Monospace for code/output */
   font-size: 14px;
   max-height: 400px;
   overflow-y: auto;
@@ -405,61 +362,16 @@ input[type="file"]:focus {
   border: none;
   border-top: 1px solid #e0e0e0;
   margin: 40px 0;
-  /* More space around the divider */
 }
 
-/* Adjustments to existing styles for consistency */
 h1 {
+  /* More specific h1 for app title */
   color: #111827;
-  /* Even darker for main title */
   font-size: 28px;
-  /* Larger main title */
   margin-bottom: 30px;
 }
 
-.transcript-container {
-  background-color: #ffffff;
-  /* Ensure cards have white background */
-  /* box-shadow is already defined in .card, so it will apply if .transcript-container also has .card */
-}
-
-.conversation-recorder-section .card {
-  /* If ConversationRecorder is wrapped in a card */
-  padding: 0;
-  /* Remove padding if ConversationRecorder handles its own */
-  box-shadow: none;
-  /* Remove double shadow if ConversationRecorder is already a card */
-}
-
-/* Ensure ConversationRecorder's h1 is styled if it's the main title of its section */
-.conversation-recorder-section>h1,
-.conversation-recorder-section>div>h1 {
-  /* If h1 is inside the ConversationRecorder component */
-  font-size: 22px;
-  color: #2c3e50;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #e0e0e0;
-  text-align: left;
-  /* Align section titles to the left */
-}
-
-/* Specific styling for the ConversationRecorder if it's not already a card */
-.conversation-recorder-section>div:not(.card) {
-  /* Target the direct child div of recorder section if it's not a card */
-  background-color: #ffffff;
-  border-radius: 10px;
-  padding: 25px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-/* Ensure buttons within ConversationRecorder also get a modern feel if not already covered */
-.conversation-recorder-section button {
-  /* Assuming general button styles are good, but can override if needed */
-  /* e.g., border-radius: 6px; */
-}
-
-/* Styles for Tabbed UI */
+/* Styles for Tabbed UI (HomePage) */
 .app-header {
   text-align: center;
   margin-bottom: 30px;
@@ -469,16 +381,13 @@ h1 {
 
 .app-header h1 {
   font-size: 32px;
-  /* Larger title for the app */
   color: #1a202c;
-  /* Darker, more prominent color */
   margin-bottom: 8px;
 }
 
 .app-header p {
   font-size: 18px;
   color: #4a5568;
-  /* Softer color for subtitle */
   max-width: 600px;
   margin: 0 auto;
 }
@@ -488,50 +397,37 @@ h1 {
   justify-content: center;
   margin-bottom: 25px;
   border-bottom: 2px solid #e2e8f0;
-  /* Separator line for tabs */
 }
 
 .tab-button {
   padding: 12px 25px;
   font-size: 17px;
-  /* Slightly larger tab font */
   font-weight: 500;
-  /* Medium weight for tabs */
   color: #4a5568;
-  /* Default tab color */
   background-color: transparent;
   border: none;
   border-bottom: 3px solid transparent;
-  /* For active indicator */
   cursor: pointer;
   transition: color 0.2s ease, border-bottom-color 0.2s ease;
   margin: 0 5px;
-  /* Spacing between tabs */
   border-radius: 0;
-  /* Tabs are usually not rounded like general buttons */
   transform: none;
-  /* Remove general button hover transform */
   opacity: 1;
-  /* Ensure full opacity */
 }
 
 .tab-button:hover {
   color: #2c5282;
-  /* Darker blue for tab hover */
   border-bottom-color: #a0aec0;
-  /* Light gray indicator on hover */
 }
 
 .tab-button.active {
   color: #2c5282;
-  /* Active tab color */
   border-bottom-color: #2c5282;
-  /* Active tab indicator color */
   font-weight: 600;
-  /* Bolder active tab */
 }
 
 .tab-content {
+  /* Container for tab content on HomePage */
   padding: 20px;
   background-color: #ffffff;
   border-radius: 8px;
@@ -539,22 +435,26 @@ h1 {
 }
 
 /* ========================================= */
-/* Transcript Detail Page Styles             */
+/* Transcript Detail Page Styles (Restored Two-Column) */
 /* ========================================= */
 
 .transcript-detail-page {
   width: 100%;
-  /* Vertical padding only, horizontal from .app-container's padding */
+  margin: 20px 0;
+  /* Reduced top/bottom margin */
+  padding: 15px 0;
+  /* Reduced vertical padding, horizontal from .app-container */
   background-color: transparent;
-  /* Make background transparent */
-  /* Remove shadow for transparent bg */
+  /* As requested */
+  /* border-radius: 16px; */
+  /* Removed as bg is transparent */
+  /* box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08); */
+  /* Removed as bg is transparent */
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   color: #334155;
   /* slate-700 */
   box-sizing: border-box;
-  /* Crucial for width: 100% and padding */
   overflow-x: hidden;
-  /* Prevent horizontal scroll on this container */
 }
 
 .transcript-detail-page .loading-state,
@@ -583,10 +483,12 @@ h1 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #e2e8f0;
-  /* slate-200 */
+  margin-bottom: 25px;
+  /* Reduced */
+  padding-bottom: 15px;
+  /* Reduced */
+  /* border-bottom: 1px solid #e2e8f0; */
+  /* Underline removed */
 }
 
 .transcript-detail-page .page-main-title {
@@ -623,7 +525,7 @@ h1 {
   margin-bottom: 35px;
   padding: 25px;
   background-color: #f8fafc;
-  /* slate-50 */
+  /* slate-50, sections retain background */
   border-radius: 12px;
   border: 1px solid #e2e8f0;
   /* slate-200 */
@@ -649,11 +551,9 @@ h1 {
   /* slate-300 */
 }
 
-/* Record Information Section */
 .transcript-detail-page .info-details-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  /* Responsive columns */
   gap: 20px;
 }
 
@@ -683,14 +583,11 @@ h1 {
   word-break: break-word;
 }
 
-/* Transcript and SOAP Notes Lists */
 .transcript-detail-page .interactive-list-container {
   max-height: 450px;
   overflow-y: auto;
   overflow-x: hidden;
-  /* Prevent horizontal scroll within these containers */
   padding: 10px;
-  /* Padding around the list items */
   background-color: #ffffff;
   border-radius: 8px;
   border: 1px solid #e2e8f0;
@@ -699,7 +596,6 @@ h1 {
 
 .transcript-detail-page .soap-list-container {
   max-height: none;
-  /* Allow SOAP notes to expand */
 }
 
 .transcript-detail-page .interactive-item {
@@ -750,7 +646,6 @@ h1 {
   font-size: 1em;
 }
 
-/* SOAP Notes Specifics */
 .transcript-detail-page .soap-category {
   margin-bottom: 25px;
 }
@@ -842,58 +737,86 @@ h1 {
   margin-top: 10px;
 }
 
-/* Two-column layout for Transcript Detail Page */
+/* Styles for Active Transcript Chunk and Resume Scroll Button */
+.transcript-chunk.active-chunk,
+.soap-note-item.active-chunk {
+  background-color: #e0f2fe !important;
+  border-left: 4px solid #0ea5e9 !important;
+}
+
+.transcript-section .section-title-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.transcript-section .section-title-container .section-title {
+  margin-bottom: 0;
+}
+
+.resume-scroll-button {
+  background-color: #4a5568;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 20px;
+  line-height: 36px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  padding: 0;
+}
+
+.resume-scroll-button:hover {
+  background-color: #2d3748;
+  transform: scale(1.1);
+}
+
+.resume-scroll-button:active {
+  transform: scale(1);
+}
+
+/* Restored Two-column layout for Transcript Detail Page */
 .transcript-detail-page .detail-page-main-content {
   display: flex;
   flex-wrap: wrap;
-  /* Allow wrapping on smaller screens if necessary */
   gap: 30px;
-  /* Space between columns */
 }
 
 .transcript-detail-page .left-column {
   flex-grow: 2;
-  /* Approx 40% if right is 3 */
+  /* Approx 40% */
   flex-shrink: 1;
   flex-basis: 0;
-  /* Allow it to grow from 0 based on flex-grow */
   min-width: 280px;
-  /* Adjusted min-width slightly */
-  /* Minimum width before wrapping or shrinking too much */
   display: flex;
   flex-direction: column;
-  /* Space between sections within the left column */
+  gap: 35px;
   overflow-x: hidden;
-  /* Prevent content within from causing overflow */
 }
 
 .transcript-detail-page .right-column {
   flex-grow: 3;
-  /* Approx 60% if left is 2 */
+  /* Approx 60% */
   flex-shrink: 1;
   flex-basis: 0;
-  /* Allow it to grow from 0 based on flex-grow */
   min-width: 320px;
-  /* Adjusted min-width slightly */
-  /* Minimum width */
   display: flex;
   flex-direction: column;
-  /* Space between sections within the right column */
+  gap: 35px;
   overflow-x: hidden;
-  /* Prevent content within from causing overflow */
 }
 
-/* Ensure sections within columns don't have excessive bottom margin
-   if they are the last child, as the column gap handles it */
 .transcript-detail-page .left-column .detail-section:last-child,
 .transcript-detail-page .right-column .detail-section:last-child {
   margin-bottom: 0;
 }
 
-/* Responsive adjustments: stack columns on smaller screens */
 @media (max-width: 800px) {
-
-  /* Adjust breakpoint as needed */
   .transcript-detail-page .detail-page-main-content {
     flex-direction: column;
   }
@@ -901,7 +824,47 @@ h1 {
   .transcript-detail-page .left-column,
   .transcript-detail-page .right-column {
     flex: 1 1 100%;
-    /* Each column takes full width when stacked */
     min-width: auto;
   }
+}
+
+/* Styles for Previous Transcripts List in HomePage Tab */
+.transcripts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.transcripts-list .transcript-item-clickable {
+  display: block;
+  padding: 18px 15px;
+  border-bottom: 1px solid #e2e8f0;
+  text-decoration: none;
+  color: inherit;
+  transition: background-color 0.2s ease;
+  border-radius: 0;
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.transcripts-list .transcript-item-clickable:first-child {
+  border-top: 1px solid #e2e8f0;
+}
+
+.transcripts-list .transcript-item-clickable:hover {
+  background-color: #f8fafc;
+  box-shadow: none;
+}
+
+.transcripts-list .transcript-item-content h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.1em;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.transcripts-list .transcript-item-content p {
+  margin: 0;
+  font-size: 0.95em;
+  color: #475569;
 }
