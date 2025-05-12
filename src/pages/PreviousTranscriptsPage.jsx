@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'; // Import useRef
 import { Link } from 'react-router-dom'; // For a "Back to Home" link
+import { BASE_URL } from '../config';
 
 function PreviousTranscriptsPage() {
     const [transcripts, setTranscripts] = useState([]);
@@ -28,7 +29,7 @@ function PreviousTranscriptsPage() {
 
                 // TODO: Replace with dynamic doctor_id from context or props
                 const doctorId = 35; // Keeping this as 34 from your current file
-                const apiUrl = 'http://13.49.223.112:8000/api/record/fetch-records'; // Keeping this from your current file
+                const apiUrl = `${BASE_URL}/api/record/fetch-records`; // Keeping this from your current file
 
                 try {
                     const response = await fetch(apiUrl, {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { BASE_URL } from '../config';
 import { useParams, Link } from 'react-router-dom';
 
 const PREFERRED_SOAP_ORDER = ['subjective', 'objective', 'assessment', 'plan'];
@@ -100,7 +101,7 @@ function TranscriptDetailPage() {
         if (effectRan.current === true && process.env.NODE_ENV === 'development') return;
         const fetchTranscriptById = async () => {
             setIsLoading(true); setError(''); setTranscriptDetails(null); setActiveChunkIndex(-1); setAutoScrollEnabled(true); setUserScrolled(false); setActiveSoapTab(''); setOrderedSoapKeys([]); soapLabelColorMap = {};
-            const apiUrl = `http://13.49.223.112:8000/api/record/get-record-by-id`;
+            const apiUrl = `${BASE_URL}/api/record/get-record-by-id`;
             try {
                 const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ record_id: recordId }), });
                 if (!response.ok) { const errorData = await response.json().catch(() => ({ message: response.statusText })); throw new Error(`API Error: ${response.status} - ${errorData.detail || errorData.message}`); }

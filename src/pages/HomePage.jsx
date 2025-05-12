@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { BASE_URL } from '../config';
 import { useNavigate, Link } from 'react-router-dom'; // Import useNavigate and Link
 import ConversationRecorder from '../components/ConversationRecorder';
 import SoapNotesGenerator from '../components/SoapNotesGenerator';
@@ -24,7 +25,7 @@ function PreviousTranscriptsList() {
                 setError('');
                 // TODO: Replace with dynamic doctor_id from context or props
                 const doctorId = 35;
-                const apiUrl = 'http://13.49.223.112:8000/api/record/fetch-records';
+                const apiUrl = `${BASE_URL}/api/record/fetch-records`;
 
                 try {
                     const response = await fetch(apiUrl, {

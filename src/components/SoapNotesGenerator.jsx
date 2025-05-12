@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { BASE_URL } from '../config';
 
 function SoapNotesGenerator() {
     const [mediaLink, setMediaLink] = useState('');
@@ -31,7 +32,7 @@ function SoapNotesGenerator() {
         // TODO: Replace these with actual patient and doctor IDs
         const patientId = selectedFile ? "23" : "39";
         const doctorId = selectedFile ? "34" : "35";
-        const apiUrl = 'http://13.49.223.112:8000/api/record/generate-soap';
+        const apiUrl = `${BASE_URL}/api/record/generate-soap`;
 
         let requestOptions;
 
