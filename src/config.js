@@ -1,1 +1,1 @@
-export const BASE_URL = 'http://13.49.223.112:8000';
+export const BASE_URL = 'https://dev-api.pepsales.xyz:8000';
