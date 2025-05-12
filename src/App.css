@@ -868,3 +868,94 @@ h1 {
   font-size: 0.95em;
   color: #475569;
 }
+
+/* Styles for SOAP Notes Tabs within Transcript Detail Page */
+.soap-notes-section-tabbed .section-title {
+  /* Keep the main "SOAP Notes" title as is */
+}
+
+.soap-tabs-nav {
+  display: flex;
+  flex-wrap: wrap;
+  /* Allow tabs to wrap on smaller widths if many sections */
+  border-bottom: 2px solid #e2e8f0;
+  /* slate-200 */
+  margin-bottom: 20px;
+  /* Space between tabs and content */
+}
+
+.soap-tab-button {
+  padding: 10px 18px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #475569;
+  /* slate-600 */
+  background-color: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  transition: color 0.2s ease, border-bottom-color 0.2s ease;
+  margin-right: 8px;
+  /* Space between tab buttons */
+  text-transform: capitalize;
+}
+
+.soap-tab-button:hover {
+  color: #1e293b;
+  /* slate-800 */
+  border-bottom-color: #cbd5e0;
+  /* slate-300, subtle indicator on hover */
+}
+
+.soap-tab-button.active {
+  color: #2563eb;
+  /* blue-600 */
+  border-bottom-color: #2563eb;
+  /* blue-600 */
+  font-weight: 600;
+}
+
+.soap-tab-content {
+  /* The .interactive-list-container.soap-list-container already has base styling.
+     No specific additional styles needed for the content area itself unless desired. */
+}
+
+/* Hide SOAP category titles if we are using tabs for them */
+.soap-notes-section-tabbed .soap-category>.soap-category-title {
+  /* display: none; */
+  /* This would hide "Subjective", "Objective" if they are tab titles */
+  /* For now, let's keep them as sub-headers within the tab content for clarity,
+     unless the design implies tabs *replace* these entirely.
+     If tabs replace them, then the content of each tab would be just the list of items.
+     The current JSX renders the category title *then* the items.
+     If the tab itself is "Subjective", then the h4 "Subjective" inside is redundant.
+     Let's assume for now the h4 is part of the tab content.
+     If not, the JSX mapping for soap_notes needs to change to only render items for activeSoapTab.
+  */
+}
+
+/* If SOAP notes are too long, the soap-list-container already has max-height: none */
+.soap-notes-section-tabbed .soap-list-container {
+  /* max-height: 500px; */
+  /* Example if a max-height is desired for tabbed content */
+  /* overflow-y: auto; */
+}
+
+/* Style for empty section messages */
+.empty-section-message {
+  padding: 20px;
+  text-align: center;
+  color: #64748b;
+  /* slate-500 */
+  font-style: italic;
+  font-size: 0.95em;
+}
+
+/* Style for Verbatim Tag in SOAP Notes */
+.verbatim-tag {
+  font-weight: 600;
+  /* Make "Verbatim:" bold */
+  margin-right: 5px;
+  color: #334155;
+  /* slate-700, or a slightly different emphasis color */
+}

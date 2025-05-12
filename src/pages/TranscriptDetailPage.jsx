@@ -1,6 +1,28 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
+const PREFERRED_SOAP_ORDER = ['subjective', 'objective', 'assessment', 'plan'];
+
+// Helper function to format seconds into MM:SS or HH:MM:SS
+const formatTimestamp = (totalSeconds) => {
+    if (isNaN(totalSeconds) || totalSeconds < 0) {
+        return "00:00";
+    }
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = Math.floor(totalSeconds % 60);
+
+    const paddedSeconds = seconds.toString().padStart(2, '0');
+    const paddedMinutes = minutes.toString().padStart(2, '0');
+
+    if (hours > 0) {
+        const paddedHours = hours.toString().padStart(2, '0');
+        return `${paddedHours}:${paddedMinutes}:${paddedSeconds}`;
+    }
+    return `${paddedMinutes}:${paddedSeconds}`;
+};
+
+
 function TranscriptDetailPage() {
     const { recordId } = useParams();
     const [transcriptDetails, setTranscriptDetails] = useState(null);
@@ -15,20 +37,44 @@ function TranscriptDetailPage() {
     const [activeChunkIndex, setActiveChunkIndex] = useState(-1);
     const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
     const [userScrolled, setUserScrolled] = useState(false);
-    const [expandedSoapQuotes, setExpandedSoapQuotes] = useState({});
+    // const [expandedSoapQuotes, setExpandedSoapQuotes] = useState({}); // No longer needed
+    const [activeSoapTab, setActiveSoapTab] = useState('');
+    const [orderedSoapKeys, setOrderedSoapKeys] = useState([]);
 
     useEffect(() => {
         if (transcriptDetails && transcriptDetails.transcript) {
-            chunkRefs.current = transcriptDetails.transcript.map(
-                (_, i) => chunkRefs.current[i] || React.createRef()
-            );
+            chunkRefs.current = transcriptDetails.transcript.map((_, i) => chunkRefs.current[i] || React.createRef());
+        }
+        if (transcriptDetails && transcriptDetails.soap_notes && typeof transcriptDetails.soap_notes === 'object') {
+            const availableKeys = Object.keys(transcriptDetails.soap_notes);
+            const currentOrderedKeys = PREFERRED_SOAP_ORDER.filter(key => availableKeys.includes(key.toLowerCase()) || availableKeys.includes(key.toUpperCase()));
+            availableKeys.forEach(key => {
+                if (!currentOrderedKeys.some(orderedKey => orderedKey.toLowerCase() === key.toLowerCase())) {
+                    currentOrderedKeys.push(key);
+                }
+            });
+            setOrderedSoapKeys(currentOrderedKeys);
+            if (!activeSoapTab && currentOrderedKeys.length > 0) {
+                let firstNonEmptyTab = '';
+                for (const key of currentOrderedKeys) {
+                    const sectionContent = transcriptDetails.soap_notes[key];
+                    if (Array.isArray(sectionContent) && sectionContent.length > 0) { firstNonEmptyTab = key; break; }
+                    else if (!Array.isArray(sectionContent) && sectionContent) { firstNonEmptyTab = key; break; }
+                }
+                setActiveSoapTab(firstNonEmptyTab || currentOrderedKeys[0]);
+            } else if (currentOrderedKeys.length === 0) {
+                setActiveSoapTab('');
+            }
+        } else {
+            setOrderedSoapKeys([]);
+            setActiveSoapTab('');
         }
     }, [transcriptDetails]);
 
     useEffect(() => {
         if (effectRan.current === true && process.env.NODE_ENV === 'development') return;
         const fetchTranscriptById = async () => {
-            setIsLoading(true); setError(''); setTranscriptDetails(null); setExpandedSoapQuotes({}); setActiveChunkIndex(-1); setAutoScrollEnabled(true); setUserScrolled(false);
+            setIsLoading(true); setError(''); setTranscriptDetails(null); /*setExpandedSoapQuotes({});*/ setActiveChunkIndex(-1); setAutoScrollEnabled(true); setUserScrolled(false); setActiveSoapTab(''); setOrderedSoapKeys([]);
             const apiUrl = `http://localhost:8000/api/record/get-record-by-id`;
             try {
                 const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ record_id: recordId }), });
@@ -38,8 +84,7 @@ function TranscriptDetailPage() {
                     setTranscriptDetails(result.data);
                 } else if (result.data === null || (typeof result.data === 'object' && Object.keys(result.data).length === 0)) {
                     setError(`Transcript with ID ${recordId} not found.`);
-                }
-                else { console.warn('API response error or unexpected data format:', result); setError('Unexpected data format received from server.'); }
+                } else { console.warn('API response error:', result); setError('Unexpected data format.'); }
             } catch (err) { console.error('Fetch error:', err); setError(err.message || 'Failed to fetch details.'); }
             finally { setIsLoading(false); }
         };
@@ -73,46 +118,34 @@ function TranscriptDetailPage() {
         if (!container) return;
         const handleManualScroll = () => {
             setUserScrolled(true);
-            if (autoScrollEnabled) {
-                setAutoScrollEnabled(false);
-            }
+            if (autoScrollEnabled) setAutoScrollEnabled(false);
         };
         container.addEventListener('scroll', handleManualScroll, { passive: true });
-        return () => {
-            container.removeEventListener('scroll', handleManualScroll);
-        }
-    }, [autoScrollEnabled]);
+        return () => container.removeEventListener('scroll', handleManualScroll);
+    }, [autoScrollEnabled, transcriptContainerRef.current]);
 
     const handleMediaSeek = (startTime) => {
         if (mediaRef.current && typeof startTime === 'number') {
             mediaRef.current.currentTime = startTime;
             mediaRef.current.play().catch(e => console.error("Media play error:", e));
-            setAutoScrollEnabled(true);
-            setUserScrolled(false);
+            setAutoScrollEnabled(true); setUserScrolled(false);
         }
     };
 
-    const toggleSoapQuote = (id) => setExpandedSoapQuotes(prev => ({ ...prev, [id]: !prev[id] }));
+    // const toggleSoapQuote = (id) => setExpandedSoapQuotes(prev => ({ ...prev, [id]: !prev[id] })); // No longer needed
 
     const handleResumeScroll = () => {
-        setAutoScrollEnabled(true);
-        setUserScrolled(false);
+        setAutoScrollEnabled(true); setUserScrolled(false);
         if (activeChunkIndex !== -1 && chunkRefs.current[activeChunkIndex]?.current) {
             chunkRefs.current[activeChunkIndex].current.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     };
 
     const renderTranscriptChunk = (chunk, index) => (
-        <div
-            key={`transcript-${index}`}
-            ref={chunkRefs.current[index]}
-            className={`transcript-chunk interactive-item ${index === activeChunkIndex ? 'active-chunk' : ''}`}
-            onClick={() => typeof chunk.start_timestamp === 'number' && handleMediaSeek(chunk.start_timestamp)}
-        >
-            <p className="speaker-text">
-                Speaker {chunk.speaker !== undefined ? chunk.speaker : 'N/A'}
+        <div key={`transcript-${index}`} ref={chunkRefs.current[index]} className={`transcript-chunk interactive-item ${index === activeChunkIndex ? 'active-chunk' : ''}`} onClick={() => typeof chunk.start_timestamp === 'number' && handleMediaSeek(chunk.start_timestamp)}>
+            <p className="speaker-text">Speaker {chunk.speaker !== undefined ? chunk.speaker : 'N/A'}
                 {typeof chunk.start_timestamp === 'number' && typeof chunk.end_timestamp === 'number' && (
-                    <span className="timestamp-text">({chunk.start_timestamp.toFixed(2)}s - {chunk.end_timestamp.toFixed(2)}s)</span>
+                    <span className="timestamp-text">({formatTimestamp(chunk.start_timestamp)} - {formatTimestamp(chunk.end_timestamp)})</span>
                 )}
             </p>
             <p className="main-text">{chunk.text}</p>
@@ -121,28 +154,18 @@ function TranscriptDetailPage() {
 
     const renderSoapNoteItem = (item, sectionKey, itemIndex) => {
         const itemId = `soap-${sectionKey}-${itemIndex}`;
-        const isExpanded = expandedSoapQuotes[itemId];
+        // const isExpanded = expandedSoapQuotes[itemId]; // No longer needed
         const hasTimestamp = typeof item.timestamp === 'number';
         return (
-            <div
-                key={itemId}
-                className={`soap-note-item ${hasTimestamp ? 'interactive-item' : ''}`}
-                onClick={hasTimestamp ? () => handleMediaSeek(item.timestamp) : undefined}
-            >
+            <div key={itemId} className={`soap-note-item ${hasTimestamp ? 'interactive-item' : ''}`} onClick={hasTimestamp ? () => handleMediaSeek(item.timestamp) : undefined}>
                 {item.label && <p className="soap-label">{item.label}</p>}
                 {item.explanation && <p className="soap-explanation">{item.explanation}</p>}
                 {item.quote && (
-                    <>
-                        <button
-                            onClick={(e) => { e.stopPropagation(); toggleSoapQuote(itemId); }}
-                            className="verbatim-toggle-button"
-                        >
-                            {isExpanded ? 'Hide verbatim' : 'Show verbatim'}
-                        </button>
-                        {isExpanded && <p className="verbatim-text">"{item.quote}"</p>}
-                    </>
+                    <p className="verbatim-text">
+                        <strong className="verbatim-tag">Verbatim:</strong> "{item.quote}"
+                    </p>
                 )}
-                {hasTimestamp && <p className="timestamp-text soap-timestamp">(Timestamp: {item.timestamp.toFixed(2)}s)</p>}
+                {hasTimestamp && <p className="timestamp-text soap-timestamp">(Timestamp: {formatTimestamp(item.timestamp)})</p>}
             </div>
         );
     };
@@ -152,6 +175,8 @@ function TranscriptDetailPage() {
     if (!transcriptDetails) return <div className="transcript-detail-page empty-state"><p>Transcript not found.</p><Link to="/" className="back-link-styled">← Back to Home</Link></div>;
 
     const MediaElement = transcriptDetails.s3_url && transcriptDetails.s3_url.match(/\.(mp4|webm|ogg)$/i) ? 'video' : 'audio';
+    const currentSoapData = activeSoapTab && transcriptDetails.soap_notes ? transcriptDetails.soap_notes[activeSoapTab] : null;
+    const isActiveSoapTabEmpty = !currentSoapData || (Array.isArray(currentSoapData) && currentSoapData.length === 0);
 
     return (
         <div className="transcript-detail-page">
@@ -160,7 +185,7 @@ function TranscriptDetailPage() {
                 <Link to="/" className="back-link-styled">← Back to Home</Link>
             </header>
 
-            <div className="detail-page-main-content"> {/* Wrapper for two-column layout */}
+            <div className="detail-page-main-content">
                 <div className="left-column">
                     {transcriptDetails.s3_url && (
                         <section className="detail-section media-section">
@@ -170,15 +195,12 @@ function TranscriptDetailPage() {
                             </MediaElement>
                         </section>
                     )}
-
                     {transcriptDetails.transcript && Array.isArray(transcriptDetails.transcript) && (
                         <section className="detail-section transcript-section">
                             <div className="section-title-container">
                                 <h3 className="section-title">Full Transcript</h3>
                                 {userScrolled && !autoScrollEnabled && (
-                                    <button onClick={handleResumeScroll} className="resume-scroll-button" title="Resume Auto-Scroll">
-                                        &#x21BB;
-                                    </button>
+                                    <button onClick={handleResumeScroll} className="resume-scroll-button" title="Resume Auto-Scroll">&#x21BB;</button>
                                 )}
                             </div>
                             <div className="interactive-list-container" ref={transcriptContainerRef}>
@@ -197,23 +219,39 @@ function TranscriptDetailPage() {
                             <div className="info-item"><span className="info-label">Doctor ID:</span> <span className="info-value">{transcriptDetails.doctor_id}</span></div>
                         </div>
                     </section>
+
                     {transcriptDetails.soap_notes && (
-                        <section className="detail-section soap-notes-section">
+                        <section className="detail-section soap-notes-section-tabbed">
                             <h3 className="section-title">SOAP Notes</h3>
-                            <div className="interactive-list-container soap-list-container">
-                                {typeof transcriptDetails.soap_notes === 'object' && transcriptDetails.soap_notes !== null ? (
-                                    Object.entries(transcriptDetails.soap_notes).map(([key, value], sectionIndex) => (
-                                        <div key={`soap-category-${key}-${sectionIndex}`} className="soap-category">
-                                            <h4 className="soap-category-title">{key.replace(/_/g, ' ')}</h4>
-                                            {Array.isArray(value) ? (
-                                                value.map((item, itemIndex) => (item && typeof item.label === 'string' && typeof item.explanation === 'string' && typeof item.quote === 'string' && typeof item.timestamp === 'number') ?
-                                                    renderSoapNoteItem(item, key, itemIndex) :
-                                                    <pre key={`soap-fallback-${key}-${itemIndex}`} className="code-block-fallback">{JSON.stringify(item, null, 2)}</pre>
-                                                )
-                                            ) : <pre className="code-block-fallback">{JSON.stringify(value, null, 2)}</pre>}
-                                        </div>
-                                    ))
-                                ) : <pre className="code-block-fallback">{JSON.stringify(transcriptDetails.soap_notes, null, 2)}</pre>}
+                            {orderedSoapKeys.length > 0 ? (
+                                <nav className="soap-tabs-nav">
+                                    {orderedSoapKeys.map(key => (
+                                        <button
+                                            key={key}
+                                            className={`soap-tab-button ${activeSoapTab === key ? 'active' : ''}`}
+                                            onClick={() => setActiveSoapTab(key)}
+                                        >
+                                            {key.replace(/_/g, ' ')}
+                                        </button>
+                                    ))}
+                                </nav>
+                            ) : <p className="empty-section-message">No SOAP note sections available.</p>}
+
+                            <div className="interactive-list-container soap-list-container soap-tab-content">
+                                {activeSoapTab && !isActiveSoapTabEmpty && Array.isArray(currentSoapData) ? (
+                                    currentSoapData.map((item, itemIndex) =>
+                                        renderSoapNoteItem(item, activeSoapTab, itemIndex)
+                                    )
+                                ) : activeSoapTab && !isActiveSoapTabEmpty && typeof currentSoapData === 'object' ? (
+                                    renderSoapNoteItem(currentSoapData, activeSoapTab, 0)
+                                ) : activeSoapTab && isActiveSoapTabEmpty ? (
+                                    <p className="empty-section-message">No notes for this section.</p>
+                                ) : (
+                                    orderedSoapKeys.length > 0 && <p className="empty-section-message">Select a SOAP note section to view details.</p>
+                                )}
+                                {!activeSoapTab && orderedSoapKeys.length === 0 && !transcriptDetails.soap_notes && (
+                                    <p className="empty-section-message">SOAP notes are not available for this record.</p>
+                                )}
                             </div>
                         </section>
                     )}
