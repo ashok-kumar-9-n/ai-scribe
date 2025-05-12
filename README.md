@@ -40,6 +40,7 @@ The homepage contains three main tabs:
   - Transcribe the conversation
   - Generate SOAP notes
   - Create a medical record
+- Media URL for Testing: [Sample conversation from AWS](https://drive.google.com/uc?export=download&id=1XAyddBAFUgJ9BX3RxISJswDjRXHlxJUe)
 
 ---
 
