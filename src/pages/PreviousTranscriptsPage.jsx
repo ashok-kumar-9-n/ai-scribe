@@ -7,7 +7,8 @@ function PreviousTranscriptsPage() {
     const [selectedTranscript, setSelectedTranscript] = useState(null); // To store the selected transcript
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
-    const initialized = useRef(false); // Ref to track if initialization has occurred
+    const [currentDoctorId, setCurrentDoctorId] = useState(null); // Initialize as null
+    const initializedForCurrentDoctor = useRef(null); // Track initialization per doctor ID
 
     const handleSelectTranscript = (record) => {
         setSelectedTranscript(record);
@@ -18,26 +19,32 @@ function PreviousTranscriptsPage() {
     };
 
     useEffect(() => {
-        // Only run the fetch logic if not already initialized and no transcript is selected
-        if (!initialized.current && !selectedTranscript) {
-            initialized.current = true; // Mark as initialized
+        const docIdFromStorage = localStorage.getItem('doctorId');
+
+        if (docIdFromStorage !== currentDoctorId) {
+            setCurrentDoctorId(docIdFromStorage);
+            initializedForCurrentDoctor.current = null; // Reset initialization for the new doctor
+            setTranscripts([]); // Clear old transcripts
+            setError(''); // Clear old errors
+            return; // Effect will re-run due to currentDoctorId state change
+        }
+
+        if (currentDoctorId && initializedForCurrentDoctor.current !== currentDoctorId && !selectedTranscript) {
+            initializedForCurrentDoctor.current = currentDoctorId; // Mark as initialized for this doctor ID
 
             const fetchTranscripts = async () => {
                 setIsLoading(true);
                 setError('');
-                setTranscripts([]);
+                // setTranscripts([]); // Already cleared if doctorId changed
 
-                // TODO: Replace with dynamic doctor_id from context or props
-                const doctorId = 35; // Keeping this as 34 from your current file
-                const apiUrl = `${BASE_URL}/api/record/fetch-records`; // Keeping this from your current file
+                const apiUrl = `${BASE_URL}/api/record/fetch-records`;
+                console.log(`Fetching records for doctor_id: ${currentDoctorId}`);
 
                 try {
                     const response = await fetch(apiUrl, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ doctor_id: doctorId }),
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ doctor_id: currentDoctorId }),
                     });
 
                     if (!response.ok) {
@@ -62,27 +69,37 @@ function PreviousTranscriptsPage() {
                 } catch (err) {
                     console.error('Error fetching transcripts:', err);
                     setError(err.message || 'Failed to fetch transcripts.');
+                    setTranscripts([]); // Ensure transcripts are cleared on error
                 } finally {
                     setIsLoading(false);
                 }
             };
 
             fetchTranscripts();
+        } else if (!currentDoctorId && initializedForCurrentDoctor.current !== 'no_doctor_id_prompted') {
+            setError('Doctor ID not set. Please set it using the FAB icon (👤) on the bottom right.');
+            setIsLoading(false);
+            setTranscripts([]); // Clear any existing transcripts
+            initializedForCurrentDoctor.current = 'no_doctor_id_prompted';
         }
-    }, [selectedTranscript]); // Re-run if selectedTranscript changes (to re-fetch if needed, or adjust logic)
+    }, [currentDoctorId, selectedTranscript]);
 
     return (
         <div className="previous-transcripts-page card-content">
-            <h2>Previous Transcripts</h2>
+            <h2>Previous Records {currentDoctorId ? `for Doctor ID: ${currentDoctorId}` : ''}</h2>
             <Link to="/" className="back-link">← Back to Home</Link>
 
             {/* List of Transcripts */}
             {isLoading && <p>Loading transcripts...</p>}
             {error && <p className="error-message">Error: {error}</p>}
 
-            {!isLoading && !error && transcripts.length === 0 && (
-                <p>No transcripts found for Doctor ID: 34.</p>
+            {!isLoading && !error && transcripts.length === 0 && currentDoctorId && (
+                <p>No transcripts found for Doctor ID: {currentDoctorId}.</p>
             )}
+            {!isLoading && !error && transcripts.length === 0 && !currentDoctorId && !error && (
+                <p>Please set a Doctor ID using the FAB (👤) to fetch transcripts.</p>
+            )}
+
 
             {!isLoading && !error && transcripts.length > 0 && (
                 <div className="transcripts-list">
@@ -90,7 +107,16 @@ function PreviousTranscriptsPage() {
                         <div key={record._id} className="transcript-item-clickable card" onClick={() => handleSelectTranscript(record)}>
                             <div className="transcript-item-content">
                                 <h3>Record ID: {record._id}</h3>
+                                <p><strong>Doctor ID:</strong> {record.doctor_id}</p>
                                 <p><strong>Patient ID:</strong> {record.patient_id}</p>
+                                {record.s3_url && (
+                                    <p>
+                                        <strong>Media:</strong>{' '}
+                                        <a href={record.s3_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                                            View/Listen
+                                        </a>
+                                    </p>
+                                )}
                                 {/* <p><strong>Date:</strong> {new Date(record.createdAt || record.timestamp || Date.now()).toLocaleDateString()}</p> */}
                             </div>
                         </div>
