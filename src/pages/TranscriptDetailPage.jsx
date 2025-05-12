@@ -100,7 +100,7 @@ function TranscriptDetailPage() {
         if (effectRan.current === true && process.env.NODE_ENV === 'development') return;
         const fetchTranscriptById = async () => {
             setIsLoading(true); setError(''); setTranscriptDetails(null); setActiveChunkIndex(-1); setAutoScrollEnabled(true); setUserScrolled(false); setActiveSoapTab(''); setOrderedSoapKeys([]); soapLabelColorMap = {};
-            const apiUrl = `http://localhost:8000/api/record/get-record-by-id`;
+            const apiUrl = `http://13.49.223.112:8000/api/record/get-record-by-id`;
             try {
                 const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ record_id: recordId }), });
                 if (!response.ok) { const errorData = await response.json().catch(() => ({ message: response.statusText })); throw new Error(`API Error: ${response.status} - ${errorData.detail || errorData.message}`); }
@@ -220,7 +220,6 @@ function TranscriptDetailPage() {
                 <div className="left-column">
                     {transcriptDetails.s3_url && (
                         <section className="detail-section media-section">
-                            <h3 className="section-title">Media Playback</h3>
                             <MediaElement ref={mediaRef} src={transcriptDetails.s3_url} controls className="media-player-element">
                                 Your browser does not support the <code>{MediaElement}</code> tag.
                             </MediaElement>
@@ -243,7 +242,6 @@ function TranscriptDetailPage() {
 
                 <div className="right-column">
                     <section className="detail-section info-section">
-                        <h3 className="section-title">Record Information</h3>
                         <div className="info-details-grid">
                             <div className="info-item"><span className="info-label">Record ID:</span> <span className="info-value">{transcriptDetails._id}</span></div>
                             <div className="info-item"><span className="info-label">Patient ID:</span> <span className="info-value">{transcriptDetails.patient_id}</span></div>

@@ -440,9 +440,9 @@ h1 {
 
 .transcript-detail-page {
   width: 100%;
-  margin: 20px 0;
+  margin: 7px 0;
   /* Reduced top/bottom margin */
-  padding: 15px 0;
+  padding: 7px 0;
   /* Reduced vertical padding, horizontal from .app-container */
   background-color: transparent;
   /* As requested */
@@ -461,7 +461,7 @@ h1 {
 .transcript-detail-page .error-state,
 .transcript-detail-page .empty-state {
   text-align: center;
-  padding: 50px 20px;
+  padding: 7px;
   font-size: 1.1em;
   color: #64748b;
   /* slate-500 */
@@ -474,18 +474,18 @@ h1 {
   /* red-100 */
   border: 1px solid #fca5a5;
   /* red-300 */
-  padding: 15px;
+  padding: 7px;
   border-radius: 8px;
-  margin-bottom: 20px;
+  margin-bottom: 7px;
 }
 
 .transcript-detail-page .page-header-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px;
+  margin-bottom: 7px;
   /* Reduced */
-  padding-bottom: 15px;
+  padding-bottom: 7px;
   /* Reduced */
   /* border-bottom: 1px solid #e2e8f0; */
   /* Underline removed */
@@ -505,7 +505,7 @@ h1 {
   color: #475569;
   /* slate-600 */
   text-decoration: none;
-  padding: 8px 14px;
+  padding: 7px;
   border-radius: 6px;
   border: 1px solid #cbd5e0;
   /* slate-300 */
@@ -522,13 +522,21 @@ h1 {
 }
 
 .transcript-detail-page .detail-section {
-  margin-bottom: 35px;
-  padding: 25px;
+  margin-bottom: 7px;
+  padding: 7px;
   background-color: #f8fafc;
   /* slate-50, sections retain background */
   border-radius: 12px;
   border: 1px solid #e2e8f0;
   /* slate-200 */
+}
+
+.transcript-detail-page .media-section,
+.transcript-detail-page .info-section {
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  /* Also remove padding for these sections if they shouldn't have a box */
 }
 
 .transcript-detail-page .detail-section:last-child {
@@ -541,25 +549,25 @@ h1 {
   color: #334155;
   /* slate-700 */
   margin-top: 0;
-  margin-bottom: 20px;
+  margin-bottom: 7px;
 }
 
 .transcript-detail-page .media-player-element {
   width: 100%;
   border-radius: 8px;
-  border: 1px solid #cbd5e0;
+  border: none;
   /* slate-300 */
 }
 
 .transcript-detail-page .info-details-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
+  gap: 7px;
 }
 
 .transcript-detail-page .info-item {
   background-color: #ffffff;
-  padding: 15px 20px;
+  padding: 7px;
   border-radius: 8px;
   border: 1px solid #e2e8f0;
   /* slate-200 */
@@ -584,13 +592,13 @@ h1 {
 }
 
 .transcript-detail-page .interactive-list-container {
-  max-height: 450px;
-  overflow-y: auto;
   overflow-x: hidden;
-  padding: 10px;
-  background-color: #ffffff;
+  padding: 7px;
+  /* background-color: #ffffff; */
+  /* Removed background-color */
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  /* border: 1px solid #e2e8f0; */
+  /* Removed border */
   /* slate-200 */
 }
 
@@ -599,8 +607,8 @@ h1 {
 }
 
 .transcript-detail-page .interactive-item {
-  margin-bottom: 12px;
-  padding: 15px;
+  margin-bottom: 7px;
+  padding: 7px;
   border: 1px solid #e2e8f0;
   /* slate-200 */
   border-radius: 8px;
@@ -623,7 +631,7 @@ h1 {
 }
 
 .transcript-detail-page .speaker-text {
-  margin: 0 0 8px 0;
+  margin: 0 0 7px 0;
   font-weight: 600;
   color: #0f766e;
   /* teal-700 for speaker */
@@ -634,7 +642,7 @@ h1 {
   font-size: 0.85em;
   color: #64748b;
   /* slate-500 */
-  margin-left: 8px;
+  margin-left: 7px;
   font-weight: 400;
 }
 
@@ -647,7 +655,7 @@ h1 {
 }
 
 .transcript-detail-page .soap-category {
-  margin-bottom: 25px;
+  margin-bottom: 7px;
 }
 
 .transcript-detail-page .soap-category:last-child {
@@ -660,15 +668,15 @@ h1 {
   color: #475569;
   /* slate-600 */
   margin-top: 0;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
+  margin-bottom: 7px;
+  padding-bottom: 7px;
   border-bottom: 1px solid #e2e8f0;
   /* slate-200 */
   text-transform: capitalize;
 }
 
 .transcript-detail-page .soap-label {
-  margin: 0 0 8px 0;
+  margin: 0 0 7px 0;
   font-weight: 600;
   color: #1e293b;
   /* slate-800 */
@@ -676,7 +684,7 @@ h1 {
 }
 
 .transcript-detail-page .soap-explanation {
-  margin: 0 0 12px 0;
+  margin: 0 0 7px 0;
   color: #475569;
   /* slate-600 */
   font-size: 1em;
@@ -688,12 +696,12 @@ h1 {
   /* blue-500 */
   color: white;
   border: none;
-  padding: 8px 14px;
+  padding: 7px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.9em;
   font-weight: 500;
-  margin-bottom: 10px;
+  margin-bottom: 7px;
   transition: background-color 0.2s ease;
 }
 
@@ -703,13 +711,13 @@ h1 {
 }
 
 .transcript-detail-page .verbatim-text {
-  margin: 10px 0 0;
+  margin: 7px 0 0;
   font-style: italic;
   color: #475569;
   /* slate-600 */
   background-color: #f1f5f9;
   /* slate-100 */
-  padding: 12px 15px;
+  padding: 7px;
   border-radius: 6px;
   border-left: 4px solid #60a5fa;
   /* blue-400 */
@@ -717,7 +725,7 @@ h1 {
 }
 
 .transcript-detail-page .soap-timestamp {
-  margin-top: 10px;
+  margin-top: 7px;
   font-size: 0.9em;
   font-weight: 500;
 }
@@ -725,7 +733,7 @@ h1 {
 .transcript-detail-page .code-block-fallback {
   white-space: pre-wrap;
   word-break: break-all;
-  padding: 10px 15px;
+  padding: 7px;
   background: #f1f5f9;
   /* slate-100 */
   border: 1px solid #e2e8f0;
@@ -734,7 +742,7 @@ h1 {
   font-size: 14px;
   color: #334155;
   /* slate-700 */
-  margin-top: 10px;
+  margin-top: 7px;
 }
 
 /* Styles for Active Transcript Chunk and Resume Scroll Button */
@@ -748,7 +756,7 @@ h1 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 7px;
 }
 
 .transcript-section .section-title-container .section-title {
@@ -784,7 +792,7 @@ h1 {
 .transcript-detail-page .detail-page-main-content {
   display: flex;
   flex-wrap: wrap;
-  gap: 30px;
+  gap: 7px;
 }
 
 .transcript-detail-page .left-column {
@@ -795,7 +803,7 @@ h1 {
   min-width: 280px;
   display: flex;
   flex-direction: column;
-  gap: 35px;
+  gap: 7px;
   overflow-x: hidden;
 }
 
@@ -807,7 +815,7 @@ h1 {
   min-width: 320px;
   display: flex;
   flex-direction: column;
-  gap: 35px;
+  gap: 7px;
   overflow-x: hidden;
 }
 
@@ -880,12 +888,12 @@ h1 {
   /* Allow tabs to wrap on smaller widths if many sections */
   border-bottom: 2px solid #e2e8f0;
   /* slate-200 */
-  margin-bottom: 20px;
+  margin-bottom: 7px;
   /* Space between tabs and content */
 }
 
 .soap-tab-button {
-  padding: 10px 18px;
+  padding: 7px;
   font-size: 15px;
   font-weight: 500;
   color: #475569;
@@ -895,7 +903,7 @@ h1 {
   border-bottom: 3px solid transparent;
   cursor: pointer;
   transition: color 0.2s ease, border-bottom-color 0.2s ease;
-  margin-right: 8px;
+  margin-right: 7px;
   /* Space between tab buttons */
   text-transform: capitalize;
 }
@@ -943,7 +951,7 @@ h1 {
 
 /* Style for empty section messages */
 .empty-section-message {
-  padding: 20px;
+  padding: 7px;
   text-align: center;
   color: #64748b;
   /* slate-500 */
